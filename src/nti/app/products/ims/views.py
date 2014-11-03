@@ -10,11 +10,11 @@ logger = __import__('logging').getLogger(__name__)
 
 from zope import interface
 from zope.container.contained import Contained
-from zope.traversing.interfaces import IPathAdapter
 
 from . import IMS
+from .interfaces import IIMSPathAdapter
 
-@interface.implementer(IPathAdapter)
+@interface.implementer(IIMSPathAdapter)
 class IMSPathAdapter(Contained):
 
 	__name__ = IMS
