@@ -7,21 +7,22 @@ __docformat__ = "restructuredtext en"
 # disable: accessing protected members, too many methods
 # pylint: disable=W0212,R0904
 
+import unittest
+
 from zope import component
+
+import zope.testing.cleanup
+
+from nti.app.testing.application_webtest import ApplicationTestLayer
 
 from nti.dataserver.tests.mock_dataserver import WithMockDS
 from nti.dataserver.tests.mock_dataserver import mock_db_trans
-
-from nti.app.testing.application_webtest import ApplicationTestLayer
+from nti.dataserver.tests.mock_dataserver import DSInjectorMixin
 
 from nti.testing.layers import find_test
 from nti.testing.layers import GCLayerMixin
 from nti.testing.layers import ZopeComponentLayer
 from nti.testing.layers import ConfiguringLayerMixin
-
-from nti.dataserver.tests.mock_dataserver import DSInjectorMixin
-
-import zope.testing.cleanup
 
 class SharedConfiguringTestLayer(ZopeComponentLayer,
 								 GCLayerMixin,
@@ -46,8 +47,6 @@ class SharedConfiguringTestLayer(ZopeComponentLayer,
 	@classmethod
 	def testTearDown(cls):
 		pass
-
-import unittest
 
 class NTIIMSTestCase(unittest.TestCase):
 	layer = SharedConfiguringTestLayer

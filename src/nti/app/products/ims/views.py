@@ -10,10 +10,12 @@ __docformat__ = "restructuredtext en"
 logger = __import__('logging').getLogger(__name__)
 
 from zope import interface
+
 from zope.container.contained import Contained
+
 from zope.traversing.interfaces import IPathAdapter
 
-from . import IMS
+from nti.app.products.ims import IMS
 
 @interface.implementer(IPathAdapter)
 class IMSPathAdapter(Contained):

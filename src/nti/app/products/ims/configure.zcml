@@ -9,8 +9,8 @@
 	<include package="zope.security" />
 
 	<adapter name="IMS"
-			 for="nti.dataserver.interfaces.IDataserverFolder pyramid.interfaces.IRequest"
 			 factory=".views.IMSPathAdapter"
-			 provides="zope.traversing.interfaces.IPathAdapter" />
+			 provides="zope.traversing.interfaces.IPathAdapter"
+			 for="nti.dataserver.interfaces.IDataserverFolder pyramid.interfaces.IRequest" />
 			 
 </configure>
