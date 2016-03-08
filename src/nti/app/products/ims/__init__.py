@@ -14,3 +14,9 @@ MessageFactory = zope.i18nmessageid.MessageFactory(__name__)
 
 #: IMS Path
 IMS = 'IMS'
+
+#: LTI Path
+LTI = 'LTI'
+
+#: SIS Path
+SIS = 'SIS'
