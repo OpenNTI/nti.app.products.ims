@@ -49,4 +49,4 @@ class LTIGradeView(AbstractAuthenticatedView,
 			result = LocatedExternalDict()
 			return result
 		else: # otherwise
-			return hexc.HTTPOk()
+			return hexc.HTTPNoContent()
