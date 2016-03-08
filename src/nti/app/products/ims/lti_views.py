@@ -45,7 +45,7 @@ class LTIGradeView(AbstractAuthenticatedView,
 		values = self.readInput()
 		print(values)
 		# TODO: do something w/ values
-		if True: # results are return
+		if False: # results are returned
 			result = LocatedExternalDict()
 			return result
 		else: # otherwise
