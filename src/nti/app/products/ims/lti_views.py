@@ -26,6 +26,10 @@ from nti.app.products.ims.views import LTIPathAdapter
 from nti.common.maps import CaseInsensitiveDict
 
 from nti.externalization.interfaces import IExternalRepresentationReader
+from nti.ims.lti.oauth_service import validate_request
+from nti.ims.lti.tool_provider import *
+from nti.ims.lti.outcome_service import *
+from nti.ims.lti.launch_params import *
 
 response_message = """
 <?xml version="1.0" encoding="UTF-8"?>
@@ -87,8 +91,17 @@ class LTIGradeView(AbstractAuthenticatedView,
 		return result
 
 	def __call__(self):
+		from IPython.core.debugger import Tracer; Tracer()()
 		values = self.readInput()
 		response = self.request.response
 		response.content_type = b'text/xml'
 		response.text =response_message
+		val_req = validate_request(values)
+		if (val_req):
+			#then check for the lis_outcome_url to send back grade data
+			#launch_mix = LaunchParamsMixin()
+			provider = ToolProvider("key", "secret", values)
+			if (provider.is_outcome_service()):
+				provider.post_read_result({})
+			print ("posted")
 		return response
