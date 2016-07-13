@@ -28,7 +28,7 @@ class IMSPathAdapter(Contained):
 		self.context = context
 		self.request = request
 		self.__parent__ = context
-	
+
 	def __getitem__(self, key):
 		if key == LTI:
 			return LTIPathAdapter(self, self.request)
