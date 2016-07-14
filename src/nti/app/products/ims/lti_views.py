@@ -9,7 +9,7 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
-
+from random import randint
 import ConfigParser
 import urllib
 import random
@@ -74,13 +74,40 @@ from zope.publisher.browser import TestRequest
 from zope.browserpage import ViewPageTemplateFile
 
 from zope.publisher.interfaces.browser import IBrowserRequest
-
+from pyramid.renderers import render_to_response
 
 response_message = """
-<html>
-<body>
-<p> Hello World! </p>
-</body>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	  xmlns:tal="http://xml.zope.org/namespaces/tal">
+	<head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<title>Addition Quiz</title>
+		
+	</head>
+	<body class="normal-text">
+		<form id='userform'method='post' action="">
+	  		Addition Quiz<br>
+	  		Find the sum: 10 + 15 <br>
+	  		<input type="number" name="answer" value=""><br>
+	  		<input type="submit" value="Submit">
+		</form>
+
+	<!---
+
+		<form action="" method="post"
+			  enctype="multipart/form-data"
+			  class="edit-form"
+			  name="subFormTable" id="subFormTable">
+
+			<div tal:repeat="item options/here">
+				<label for="??" tal:attributes="for item/name" tal:content="item/label" />
+				<input tal:replace="structure item" />
+			</div>
+		</form>
+	-->	
+	</body>
 </html>
 """
 
@@ -105,83 +132,17 @@ grade = """
 </imsx_POXEnvelopeResponse>
 """
 
-class IPerson(interface.Interface):
- 
-      id = schema.TextLine(
-          title=u'ID',
-          readonly=True,
-          required=True)
- 
-      name = schema.TextLine(
-          title=u'Name',
-          required=True)
- 
-      gender = schema.Choice(
-          title=u'Gender',
-          values=('male', 'female'),
-          required=False)
- 
-      age = schema.Int(
-          title=u'Age',
-          description=u"The person's age.",
-          min=0,
-          default=20,
-          required=False)
- 
-      @interface.invariant
-      def ensureIdAndNameNotEqual(person):
-          if person.id == person.name:
-              raise interface.Invalid(
-                  "The id and name cannot be the same.")
-
-class Person(object):
-
-    interface.implements(IPerson)
-    id = FieldProperty(IPerson['id'])
-    name = FieldProperty(IPerson['name'])
-    gender = FieldProperty(IPerson['gender'])
-    age = FieldProperty(IPerson['age'])
- 
-    def __init__(self, id, name, gender=None, age=None):
-        self.id = id
-        self.name = name
-        if gender:
-            self.gender = gender
-        if age:
-            self.age = age
- 
-    def __repr__(self):
-      	return '<%s %r>' % (self.__class__.__name__, self.name)
-
-class PersonAddForm(form.AddForm):
- 
-      fields = form.Fields(IPerson)
- 
-      def create(self, data):
-          return Person(**data)
- 
-      def add(self, object):
-          self.context[object.id] = object
- 
-      def nextURL(self):
-          return 'index.html'
-
-def addTemplate(form):
-      form.template = ViewPageTemplateFile.bind_template(
-          ViewPageTemplateFile.ViewPageTemplateFile(
-              'simple_edit.pt', os.path.dirname(tests.__file__)), form)
 
 @view_config(name='Grade')
 @view_config(name='grade')
 @view_defaults(route_name='objects.generic.traversal',
 			   renderer='rest',
 			   context=LTIPathAdapter)
-@view_config( route_name='objects.generic.traversal',
-			  renderer='account_profile_view.pt',
-			  request_method='GET')
-class LTIGradeView(AbstractAuthenticatedView,
-				   ModeledContentUploadRequestUtilsMixin):
-
+@view_config( request_method='GET')
+class LTIGradeView(ModeledContentUploadRequestUtilsMixin):
+	def __init__(self, request):
+    		self.request = request
+	
 	def _handle_unicode(self, value, request):
 		if isinstance(value, unicode):  # already unicode
 			return value
@@ -217,34 +178,29 @@ class LTIGradeView(AbstractAuthenticatedView,
 		values = self.readInput()
 		response = self.request.response
 		response.content_type = b'text/html'
-		response.text = response_message
-		val_req = validate_request(values)
-		if (val_req):
-			# then check for the lis_outcome_url to send back grade data
-			# launch_mix = LaunchParamsMixin()
-			provider = ToolProvider("key", "secret", values)
-			#if (provider.is_outcome_service()):
-			#	provider.post_read_result({})
-			
-			"""
-			print ("posted")
-			"""
-			post_to = values['lis_outcome_service_url'][0]
-			auth = OAuth1('key', client_secret='secret', signature_type='auth_header')
-			#making a request to send the grade
-			headers = {'Content-Type': "application/xml"}
-			req = requests.post(post_to, data=grade,
-				headers = headers, auth=auth)
-			#print (req.status_code)
-			request = self.request
-			addForm = PersonAddForm(None, request)
-			fields = form.Fields(IPerson)
-			#interfaces.IFieldsForm.providedBy(addForm)
-			#addForm.update()
-			context = post_to
-			widgets = zope.formlib.form.setUpWidgets( fields, 'form', request.context,
-													  IBrowserRequest( request),
-													  # Without this, it needs request.form
-													  ignore_request=True )
+		if(values.get('answer')): #user has submitted quiz
+			if(values['answer'][0] == '25'):
+				response.text = "<html><p> Correct!</p></html>"
+				#add code to send grade from tool_provider and outcome_service
+				#grade for correct answer is 1
+				#note that we'll need to find a way to store the provider from a previous request
+				#maybe we should use a global variable or send the values back and forth with the form
+				#submission.
+				#next step is to just print out the XML required for the grading system.
+			else:
+				response.text = "<html><p> Incorrect.</p></html>"
+				#add grade for incorrect, 0.
 
-			return widgets
+		else:
+			val_req = validate_request(values)
+			if (val_req):
+				provider = ToolProvider("key", "secret", values)
+				post_to = values['lis_outcome_service_url'][0]
+				auth = OAuth1('key', client_secret='secret', signature_type='auth_header')
+				#making a request to send the grade
+				headers = {'Content-Type': "application/xml"}
+				req = requests.post(post_to, data=grade,
+					headers = headers, auth=auth)
+				context = post_to
+				response.text = response_message
+		return response
