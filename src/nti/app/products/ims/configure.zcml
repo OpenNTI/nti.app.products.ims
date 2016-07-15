@@ -12,5 +12,15 @@
 			 factory=".views.IMSPathAdapter"
 			 provides="zope.traversing.interfaces.IPathAdapter"
 			 for="nti.dataserver.interfaces.IDataserverFolder pyramid.interfaces.IRequest" />
-			 
+
+	<adapter name="LTI"
+			 factory=".views.LTIPathAdapter"
+			 provides="zope.traversing.interfaces.IPathAdapter"
+			 for="nti.dataserver.interfaces.IDataserverFolder pyramid.interfaces.IRequest" />
+
+	<adapter name="SIS"
+			 factory=".views.SISPathAdapter"
+			 provides="zope.traversing.interfaces.IPathAdapter"
+			 for="nti.dataserver.interfaces.IDataserverFolder pyramid.interfaces.IRequest" />
+
 </configure>

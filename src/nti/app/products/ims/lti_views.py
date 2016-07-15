@@ -92,21 +92,7 @@ response_message = """
 	  		Find the sum: 10 + 15 <br>
 	  		<input type="number" name="answer" value=""><br>
 	  		<input type="submit" value="Submit">
-		</form>
-
-	<!---
-
-		<form action="" method="post"
-			  enctype="multipart/form-data"
-			  class="edit-form"
-			  name="subFormTable" id="subFormTable">
-
-			<div tal:repeat="item options/here">
-				<label for="??" tal:attributes="for item/name" tal:content="item/label" />
-				<input tal:replace="structure item" />
-			</div>
-		</form>
-	-->	
+		</form>	
 	</body>
 </html>
 """
@@ -131,6 +117,12 @@ grade = """
    </imsx_POXBody>
 </imsx_POXEnvelopeResponse>
 """
+
+#Global provider object to generate outcome service for grades on Moddle.
+# This will need to be handled differently in the future, but since there's
+# only one view we need it to keep the provider from getting erased upon the 
+# submission of an answer to the addition question. 
+provider = None
 
 
 @view_config(name='Grade')
@@ -178,29 +170,33 @@ class LTIGradeView(ModeledContentUploadRequestUtilsMixin):
 		values = self.readInput()
 		response = self.request.response
 		response.content_type = b'text/html'
+
 		if(values.get('answer')): #user has submitted quiz
 			if(values['answer'][0] == '25'):
-				response.text = "<html><p> Correct!</p></html>"
+				outcome = provider.generate_outcome_request_xml(score=1)
+				response.text = "<html><p> Correct!</p>" + "<textarea>" + outcome + "</textarea>" + "</html>" 
 				#add code to send grade from tool_provider and outcome_service
 				#grade for correct answer is 1
 				#note that we'll need to find a way to store the provider from a previous request
 				#maybe we should use a global variable or send the values back and forth with the form
 				#submission.
 				#next step is to just print out the XML required for the grading system.
+				
 			else:
-				response.text = "<html><p> Incorrect.</p></html>"
+				outcome = provider.generate_outcome_request_xml(score=0)
+				response.text = "<html><p> Incorrect.</p>" + "<textarea>" + outcome + "</textarea>" + "</html>" 
 				#add grade for incorrect, 0.
-
-		else:
+				
+			post_to = provider.params['lis_outcome_service_url'][0]
+			auth = OAuth1('key', client_secret='secret', signature_type='auth_header')
+			#making a request to send the grade back to Moodle
+			headers = {'Content-Type': "application/xml"}
+			req = requests.post(post_to, data=grade,
+					headers = headers, auth=auth)
+		elif (values.get('oauth_consumer_key')): #need to validate user
 			val_req = validate_request(values)
 			if (val_req):
+				global provider
 				provider = ToolProvider("key", "secret", values)
-				post_to = values['lis_outcome_service_url'][0]
-				auth = OAuth1('key', client_secret='secret', signature_type='auth_header')
-				#making a request to send the grade
-				headers = {'Content-Type': "application/xml"}
-				req = requests.post(post_to, data=grade,
-					headers = headers, auth=auth)
-				context = post_to
 				response.text = response_message
 		return response
