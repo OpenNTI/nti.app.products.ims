@@ -56,7 +56,7 @@ from nti.common.maps import CaseInsensitiveDict
 
 from nti.externalization.interfaces import IExternalRepresentationReader
 
-from nti.ims.lti.oauth_service import validate_request
+from nti.ims.lti.oauth_service import validate_request, send_grade
 
 from nti.ims.lti.tool_provider import ToolProvider
 from nti.dataserver.users import interfaces as user_interfaces
@@ -67,13 +67,7 @@ import zope.interface
 from zope.interface import implements
 from zope.app.container.contained import Contained
 import os
-from oauthlib.oauth1.rfc5849 import signature
-from oauthlib.oauth1.rfc5849.utils import escape
-from oauthlib.oauth1.rfc5849.signature import collect_parameters
-import base64
-from hashlib import sha1
-from uuid import uuid4
-import time
+
 
 response_message = """
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
@@ -96,33 +90,11 @@ response_message = """
 </html>
 """
 
-grade = """
-<imsx_POXEnvelopeResponse xmlns="http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0">
-   <imsx_POXHeader>
-	  <imsx_POXResponseHeaderInfo>
-		 <imsx_version>V1.0</imsx_version>
-		 <imsx_messageIdentifier>4560</imsx_messageIdentifier>
-		 <imsx_statusInfo>
-			<imsx_codeMajor>success</imsx_codeMajor>
-			<imsx_severity>status</imsx_severity>
-			<imsx_description>Score for 3124567 is now 0.92</imsx_description>
-			<imsx_messageRefIdentifier>999999123</imsx_messageRefIdentifier>
-			<imsx_operationRefIdentifier>replaceResult</imsx_operationRefIdentifier>
-		 </imsx_statusInfo>
-	  </imsx_POXResponseHeaderInfo>
-   </imsx_POXHeader>
-   <imsx_POXBody>
-	  <replaceResultResponse />
-   </imsx_POXBody>
-</imsx_POXEnvelopeResponse>
-"""
-
 #Global provider object to generate outcome service for grades on Moddle.
 # This will need to be handled differently in the future, but since there's
 # only one view we need it to keep the provider from getting erased upon the 
 # submission of an answer to the addition question. 
 provider = None
-isEdX = True
 key = u'key'
 secret = "secret"
 
@@ -179,40 +151,14 @@ class LTIGradeView(ModeledContentUploadRequestUtilsMixin):
 				response.text = "<html><p> Correct!</p>" + "<textarea>" + outcome + "</textarea>" + "</html>" 
 				#add code to send grade from tool_provider and outcome_service
 				#grade for correct answer is 1
-				#note that we'll need to find a way to store the provider from a previous request
-				#maybe we should use a global variable or send the values back and forth with the form
-				#submission.
-				#next step is to just print out the XML required for the grading system.
 				
 			else:
 				outcome = provider.generate_outcome_request_xml(score=0)
 				response.text = "<html><p> Incorrect.</p>" + "<textarea>" + outcome + "</textarea>" + "</html>" 
 				#add grade for incorrect, 0.
-			post_to = provider.params['lis_outcome_service_url'][0]
-			#below is necessary to send request to edX
-			#post_to = "http://192.168.33.10:18010" + post_to
-			"""
-			client = oauthlib.oauth1.Client("key", client_secret='secret', signature_type='auth_header')
-			#uri, headers, body = client.sign(post_to)	
-			auth = OAuth1('key', client_secret='secret', signature_type='auth_header')
-			#making a request to send the grade back to Moodle
-			headers = {'Content-Type': "application/xml"}
-			req = requests.post(post_to, data=outcome,
-					headers = headers, auth=auth, verify=False)
-			"""
-			body_hash = (base64.b64encode(sha1(outcome).digest()).decode("utf-8"))
 
-			oauth_args = [("oauth_body_hash", body_hash),("oauth_consumer_key", key),("oauth_nonce", uuid4().hex.decode('utf-8')),
-        		("oauth_signature_method", u"HMAC-SHA1"),("oauth_timestamp", str(int(time.time())).decode('utf-8')), ("oauth_version", u"1.0")]
-
-			params = signature.normalize_parameters(oauth_args)
-			base_string = signature.construct_base_string("POST", post_to, params)
-			sig = signature.sign_hmac_sha1(base_string, "secret", "")
-
-			oauth_header = (", ".join(['%s="%s"' % items for items in oauth_args]))
-			oauth_header += ', oauth_signature="%s"' % escape(sig)
-			headers = {'Content-Type': "application/xml",'Authorization': "OAuth %s" % oauth_header}
-			req = requests.post(post_to, headers=headers, data=outcome)
+			#sign the request and send grade
+			grade_request = send_grade(provider, outcome)
 
 		elif (values.get('oauth_consumer_key')): #need to validate user
 			val_req = validate_request(values)
