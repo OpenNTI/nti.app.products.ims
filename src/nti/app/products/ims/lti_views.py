@@ -22,7 +22,7 @@ import hashlib
 import json
 
 from requests_oauthlib import OAuth1, OAuth1Session
-
+import oauthlib
 
 import six
 from urlparse import parse_qs
@@ -66,15 +66,14 @@ from persistent import Persistent
 import zope.interface
 from zope.interface import implements
 from zope.app.container.contained import Contained
-from zope.formlib import form
-from zope import interface, schema
-from zope.schema.fieldproperty import FieldProperty
 import os
-from zope.publisher.browser import TestRequest
-from zope.browserpage import ViewPageTemplateFile
-
-from zope.publisher.interfaces.browser import IBrowserRequest
-from pyramid.renderers import render_to_response
+from oauthlib.oauth1.rfc5849 import signature
+from oauthlib.oauth1.rfc5849.utils import escape
+from oauthlib.oauth1.rfc5849.signature import collect_parameters
+import base64
+from hashlib import sha1
+from uuid import uuid4
+import time
 
 response_message = """
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
@@ -123,6 +122,9 @@ grade = """
 # only one view we need it to keep the provider from getting erased upon the 
 # submission of an answer to the addition question. 
 provider = None
+isEdX = True
+key = u'key'
+secret = "secret"
 
 
 @view_config(name='Grade')
@@ -186,13 +188,32 @@ class LTIGradeView(ModeledContentUploadRequestUtilsMixin):
 				outcome = provider.generate_outcome_request_xml(score=0)
 				response.text = "<html><p> Incorrect.</p>" + "<textarea>" + outcome + "</textarea>" + "</html>" 
 				#add grade for incorrect, 0.
-				
 			post_to = provider.params['lis_outcome_service_url'][0]
+			#below is necessary to send request to edX
+			#post_to = "http://192.168.33.10:18010" + post_to
+			"""
+			client = oauthlib.oauth1.Client("key", client_secret='secret', signature_type='auth_header')
+			#uri, headers, body = client.sign(post_to)	
 			auth = OAuth1('key', client_secret='secret', signature_type='auth_header')
 			#making a request to send the grade back to Moodle
 			headers = {'Content-Type': "application/xml"}
-			req = requests.post(post_to, data=grade,
-					headers = headers, auth=auth)
+			req = requests.post(post_to, data=outcome,
+					headers = headers, auth=auth, verify=False)
+			"""
+			body_hash = (base64.b64encode(sha1(outcome).digest()).decode("utf-8"))
+
+			oauth_args = [("oauth_body_hash", body_hash),("oauth_consumer_key", key),("oauth_nonce", uuid4().hex.decode('utf-8')),
+        		("oauth_signature_method", u"HMAC-SHA1"),("oauth_timestamp", str(int(time.time())).decode('utf-8')), ("oauth_version", u"1.0")]
+
+			params = signature.normalize_parameters(oauth_args)
+			base_string = signature.construct_base_string("POST", post_to, params)
+			sig = signature.sign_hmac_sha1(base_string, "secret", "")
+
+			oauth_header = (", ".join(['%s="%s"' % items for items in oauth_args]))
+			oauth_header += ', oauth_signature="%s"' % escape(sig)
+			headers = {'Content-Type': "application/xml",'Authorization': "OAuth %s" % oauth_header}
+			req = requests.post(post_to, headers=headers, data=outcome)
+
 		elif (values.get('oauth_consumer_key')): #need to validate user
 			val_req = validate_request(values)
 			if (val_req):
