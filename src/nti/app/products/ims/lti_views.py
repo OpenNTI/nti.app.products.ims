@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
+The following code is the view handler for the LTI provider in nti.ims
+
 .. $Id$
 """
 
@@ -68,7 +70,8 @@ from zope.interface import implements
 from zope.app.container.contained import Contained
 import os
 
-
+#Response message below is for demo purposes. Should be removed and replaced
+#with whatever content needs to be returned to consumer. 
 response_message = """
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
 	 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -90,13 +93,18 @@ response_message = """
 </html>
 """
 
-#Global provider object to generate outcome service for grades on Moddle.
+#Global provider object is to generate outcome service for grades on Moddle.
 # This will need to be handled differently in the future, but since there's
 # only one view we need it to keep the provider from getting erased upon the 
 # submission of an answer to the addition question. 
 provider = None
+#need to delete key and secret once full oauth server is created.
 key = u'key'
 secret = "secret"
+#use this hidden_grade when you'd like to return a grade without providing content to 
+# the consumer. 
+hidden_grade = False 
+
 
 
 @view_config(name='Grade')
@@ -140,30 +148,43 @@ class LTIGradeView(ModeledContentUploadRequestUtilsMixin):
 		return result
 
 	def __call__(self):
+		#use the tracer below for debugging.
 		from IPython.core.debugger import Tracer; Tracer()()
+		#values stores all of the information from the consumer's request
+		#this includes key, secret, signature method, and outcome_service_url
 		values = self.readInput()
 		response = self.request.response
 		response.content_type = b'text/html'
 
+		#for demo purposes a request with "answer" will be returned after 
+		#the form from above is submitted. In a full production provider this 
+		#probably wouldn't happen. 
 		if(values.get('answer')): #user has submitted quiz
 			if(values['answer'][0] == '25'):
 				outcome = provider.generate_outcome_request_xml(score=1)
 				response.text = "<html><p> Correct!</p>" + "<textarea>" + outcome + "</textarea>" + "</html>" 
-				#add code to send grade from tool_provider and outcome_service
 				#grade for correct answer is 1
-				
 			else:
 				outcome = provider.generate_outcome_request_xml(score=0)
 				response.text = "<html><p> Incorrect.</p>" + "<textarea>" + outcome + "</textarea>" + "</html>" 
 				#add grade for incorrect, 0.
 
 			#sign the request and send grade
+			#sending the grade is a part of the oauth_service from nti.ims.lti
 			grade_request = send_grade(provider, outcome)
 
 		elif (values.get('oauth_consumer_key')): #need to validate user
+			#in the future validate_request should include signing and 
+			#authorizing user, but now it just checks for "key"
 			val_req = validate_request(values)
 			if (val_req):
 				global provider
 				provider = ToolProvider("key", "secret", values)
 				response.text = response_message
+				if (hidden_grade):
+					#hidden grade so send grade without waiting for an 
+					#answer on the quiz.
+					response.text = ""
+					outcome = provider.generate_outcome_request_xml(score=0.5)
+					grade_request = send_grade(provider, outcome)
 		return response
