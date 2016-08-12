@@ -149,7 +149,7 @@ class LTIGradeView(ModeledContentUploadRequestUtilsMixin):
 
 	def __call__(self):
 		#use the tracer below for debugging.
-		from IPython.core.debugger import Tracer; Tracer()()
+		#from IPython.core.debugger import Tracer; Tracer()()
 		#values stores all of the information from the consumer's request
 		#this includes key, secret, signature method, and outcome_service_url
 		values = self.readInput()
