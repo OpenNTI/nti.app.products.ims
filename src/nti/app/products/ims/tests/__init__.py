@@ -24,39 +24,42 @@ from nti.testing.layers import GCLayerMixin
 from nti.testing.layers import ZopeComponentLayer
 from nti.testing.layers import ConfiguringLayerMixin
 
+
 class SharedConfiguringTestLayer(ZopeComponentLayer,
-								 GCLayerMixin,
-								 ConfiguringLayerMixin,
-								 DSInjectorMixin):
+                                 GCLayerMixin,
+                                 ConfiguringLayerMixin,
+                                 DSInjectorMixin):
 
-	set_up_packages = ('nti.dataserver', 'nti.app.products.ims')
+    set_up_packages = ('nti.dataserver', 'nti.app.products.ims')
 
-	@classmethod
-	def setUp(cls):
-		cls.setUpPackages()
+    @classmethod
+    def setUp(cls):
+        cls.setUpPackages()
 
-	@classmethod
-	def tearDown(cls):
-		cls.tearDownPackages()
-		zope.testing.cleanup.cleanUp()
+    @classmethod
+    def tearDown(cls):
+        cls.tearDownPackages()
+        zope.testing.cleanup.cleanUp()
 
-	@classmethod
-	def testSetUp(cls, test=None):
-		cls.setUpTestDS(test)
+    @classmethod
+    def testSetUp(cls, test=None):
+        cls.setUpTestDS(test)
 
-	@classmethod
-	def testTearDown(cls):
-		pass
+    @classmethod
+    def testTearDown(cls):
+        pass
+
 
 class NTIIMSTestCase(unittest.TestCase):
-	layer = SharedConfiguringTestLayer
+    layer = SharedConfiguringTestLayer
+
 
 class NTIIMSApplicationTestLayer(ApplicationTestLayer):
 
-	@classmethod
-	def setUp(cls):
-		pass
+    @classmethod
+    def setUp(cls):
+        pass
 
-	@classmethod
-	def tearDown(cls):
-		pass
+    @classmethod
+    def tearDown(cls):
+        pass

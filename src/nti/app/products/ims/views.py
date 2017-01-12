@@ -19,35 +19,38 @@ from nti.app.products.ims import IMS
 from nti.app.products.ims import LTI
 from nti.app.products.ims import SIS
 
+
 @interface.implementer(IPathAdapter)
 class IMSPathAdapter(Contained):
 
-	__name__ = IMS
+    __name__ = IMS
 
-	def __init__(self, context, request):
-		self.context = context
-		self.request = request
-		self.__parent__ = context
+    def __init__(self, context, request):
+        self.context = context
+        self.request = request
+        self.__parent__ = context
 
-	def __getitem__(self, key):
-		if key == LTI:
-			return LTIPathAdapter(self, self.request)
-		elif key == SIS:
-			return SISPathAdapter(self, self.request)
-		raise KeyError(key)
+    def __getitem__(self, key):
+        if key == LTI:
+            return LTIPathAdapter(self, self.request)
+        elif key == SIS:
+            return SISPathAdapter(self, self.request)
+        raise KeyError(key)
+
 
 @interface.implementer(IPathAdapter)
 class LTIPathAdapter(Contained):
 
-	def __init__(self, parent, request):
-		self.request = request
-		self.__parent__ = parent
-		self.__name__ = LTI
+    def __init__(self, parent, request):
+        self.request = request
+        self.__parent__ = parent
+        self.__name__ = LTI
+
 
 @interface.implementer(IPathAdapter)
 class SISPathAdapter(Contained):
 
-	def __init__(self, parent, request):
-		self.request = request
-		self.__parent__ = parent
-		self.__name__ = SIS
+    def __init__(self, parent, request):
+        self.request = request
+        self.__parent__ = parent
+        self.__name__ = SIS
