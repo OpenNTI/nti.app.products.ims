@@ -1,6 +1,6 @@
 [run]
 source = src/nti/
-omit = src/nti/ims/tests/*
+omit = src/nti/app/products/ims/tests/*
 
 [report]
 # Coverage is run on Linux under cPython 2 and 3,
