@@ -1,39 +1,18 @@
-# -*- mode: conf-unix-mode -*-
 [run]
-omit =
-	*/test*
-	*/tests*/
-
+source = src/nti/
+omit = src/nti/ims/tests/*
 
 [report]
-# Regexes for lines to exclude from consideration
+# Coverage is run on Linux under cPython 2 and 3,
+# exclude branches that are windows, pypy
+# specific
 exclude_lines =
-	# Have to re-enable the standard pragma
-	pragma: no cover
-
-	# Don't complain about missing debug-only code:
-	def __repr__
-	if self\.debug
-
-	# Don't complain if tests don't hit defensive assertion code:
-	raise AssertionError
-	raise NotImplementedError
-
-	# Don't complain if non-runnable code isn't run:
-	if 0:
-	if False:
-	if __name__ == .__main__.:
-
-	# Nose2 imports before running, so some import-time things,
-	# notably class decorators and import statements, don't show as executed
-	implementer
-	adapter
-	import
-	__docformat__
-	"""
-	"""
-	# module-level constant definitions
-	^_?[A-Z].* =
-
-	# Sadly we can't fix this for class or def
-	# because that excludes the whole body
+    pragma: no cover
+    def __repr__
+    raise AssertionError
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    if PYPY:
+    if sys.platform == 'win32':
+    if mswindows:
+    if is_windows:
