@@ -11,7 +11,7 @@ logger = __import__('logging').getLogger(__name__)
 
 from zope import interface
 
-from zope.container.contained import Contained
+from zope.location.interfaces import IContained
 
 from zope.traversing.interfaces import IPathAdapter
 
@@ -20,8 +20,8 @@ from nti.app.products.ims import LTI
 from nti.app.products.ims import SIS
 
 
-@interface.implementer(IPathAdapter)
-class IMSPathAdapter(Contained):
+@interface.implementer(IPathAdapter, IContained)
+class IMSPathAdapter(object):
 
     __name__ = IMS
 
@@ -38,19 +38,21 @@ class IMSPathAdapter(Contained):
         raise KeyError(key)
 
 
-@interface.implementer(IPathAdapter)
-class LTIPathAdapter(Contained):
+@interface.implementer(IPathAdapter, IContained)
+class LTIPathAdapter(object):
+
+    __name__ = LTI
 
     def __init__(self, parent, request):
         self.request = request
         self.__parent__ = parent
-        self.__name__ = LTI
 
 
-@interface.implementer(IPathAdapter)
-class SISPathAdapter(Contained):
+@interface.implementer(IPathAdapter, IContained)
+class SISPathAdapter(object):
+
+    __name__ = SIS
 
     def __init__(self, parent, request):
         self.request = request
         self.__parent__ = parent
-        self.__name__ = SIS
