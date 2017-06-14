@@ -9,7 +9,7 @@
 	<include package="zope.security" />
 
 	<include package="nti.ims" />
-	
+
 	<adapter name="IMS"
 			 factory=".views.IMSPathAdapter"
 			 provides="zope.traversing.interfaces.IPathAdapter"
@@ -20,9 +20,31 @@
 			 provides="zope.traversing.interfaces.IPathAdapter"
 			 for="nti.dataserver.interfaces.IDataserverFolder pyramid.interfaces.IRequest" />
 
+	<adapter factory="nti.traversal.traversal.DefaultAdapterTraversable"
+			 for=".views.LTIPathAdapter pyramid.interfaces.IRequest" />
+
 	<adapter name="SIS"
 			 factory=".views.SISPathAdapter"
 			 provides="zope.traversing.interfaces.IPathAdapter"
 			 for="nti.dataserver.interfaces.IDataserverFolder pyramid.interfaces.IRequest" />
+
+	<adapter name="TOOLS"
+			 factory=".views.ToolProvidersAdapter"
+			 provides="zope.traversing.interfaces.IPathAdapter"
+			 for=".views.LTIPathAdapter pyramid.interfaces.IRequest" />
+
+	<!-- Register our tool, config factory, and provider for a basic Launch Tool-->
+
+	<adapter factory=".launch.LaunchToolConfigFactory"
+			 provides="nti.ims.lti.interfaces.IToolConfigFactory"
+			 for=".launch.LaunchTool" />
+
+	<utility factory=".launch.LaunchTool"
+			 provides="nti.ims.lti.interfaces.ITool"
+			 name="launch"/>
+
+	<adapter factory=".launch.LaunchProvider"
+			 provides=".interfaces.IToolProvider"
+			 for=".launch.LaunchTool pyramid.interfaces.IRequest" />
 
 </configure>
