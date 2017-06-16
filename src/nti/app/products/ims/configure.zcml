@@ -10,6 +10,16 @@
 
 	<include package="nti.ims" />
 
+	<!-- OAuth -->
+	<utility factory=".oauth.OAuthSignatureOnlyValidator"
+			 provides=".interfaces.IOAuthRequestValidator"/>
+
+	<adapter factory=".pyramid.PyramidLTIRequest"
+			 provides=".interfaces.ILTIRequest"
+			 for="pyramid.interfaces.IRequest" />
+
+	<!-- Pyramid traversal -->
+
 	<adapter name="IMS"
 			 factory=".views.IMSPathAdapter"
 			 provides="zope.traversing.interfaces.IPathAdapter"
@@ -43,8 +53,8 @@
 			 provides="nti.ims.lti.interfaces.ITool"
 			 name="launch"/>
 
-	<adapter factory=".launch.LaunchProvider"
+	<adapter factory=".launch._provider_factory"
 			 provides=".interfaces.IToolProvider"
-			 for=".launch.LaunchTool pyramid.interfaces.IRequest" />
+			 for=".launch.LaunchTool .interfaces.ILTIRequest" />
 
 </configure>

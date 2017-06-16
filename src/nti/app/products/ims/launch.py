@@ -22,9 +22,6 @@ import urlparse
 from zope import component
 from zope import interface
 
-from ims_lti_py.request_validator import RequestValidatorMixin
-from ims_lti_py.tool_provider import ToolProvider
-
 from nti.appserver.interfaces import IApplicationSettings
 
 from nti.appserver.policies.interfaces import ISitePolicyUserEventListener
@@ -36,7 +33,7 @@ from nti.ims.lti.interfaces import ITool
 
 from .interfaces import IToolProvider
 
-from .provider import PyramidToolProvider
+from .provider import ToolProvider
 
 @interface.implementer(ITool)
 class LaunchTool(object):
@@ -86,19 +83,21 @@ def _web_root():
 
 NTIID_PARAM_NAME = 'nti_ntiid'
 
+def _provider_factory(tool, request):
+    return LaunchProvider.from_unpacked_request(None,
+                                                request.params,
+                                                request.url,
+                                                request.headers)
+
+
 @interface.implementer(IToolProvider)
-class LaunchProvider(PyramidToolProvider):
+class LaunchProvider(ToolProvider):
     """
     A basic tool provider to handle responding to a consumer request
     to launch the NT platform.
     """
 
-    def __init__(self, tool, request):
-        self.tool = tool
-        self.request = request
-
-        super(LaunchProvider, self).__init__(self.request)
-
+    tool = None
 
     @property
     def target_ntiid(self):
@@ -119,7 +118,7 @@ class LaunchProvider(PyramidToolProvider):
     def description(self):
         return self.tool.description
 
-    def respond(self, request):
+    def respond(self):
         # TODO seems like we should have some component/utility
         # somewhere that knows how to generate a web platform
         # url for an ntiid or id.  Regardless this probably
@@ -129,10 +128,9 @@ class LaunchProvider(PyramidToolProvider):
         # TODO generate the url with the target_ntiid if we have one
         return hexc.HTTPSeeOther(location=_web_root())
 
-    def valid_request(self, request):
-        super(LaunchProvider, self).valid_request(request)
+    def valid_request(self):
+        super(LaunchProvider, self).valid_request()
         if not self.is_launch_request():
-            raise ValueError('Excpected a launch request')
-        return True
+            raise ValueError('Expected launch request')
 
 

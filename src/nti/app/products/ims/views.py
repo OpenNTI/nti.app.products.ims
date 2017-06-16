@@ -42,6 +42,7 @@ from nti.links import render_link
 from nti.links.links import Link
 
 from .interfaces import IToolProvider
+from .interfaces import ILTIRequest
 
 
 @interface.implementer(IPathAdapter, IContained)
@@ -126,13 +127,15 @@ def execute_provider(provider, request):
 class LaunchProviderView(AbstractView):
 
     def __call__(self):
-        #First we need to validate
+        lti_request = ILTIRequest(self.request)
+        provider = component.queryMultiAdapter((self.context, lti_request), IToolProvider)
+        if not provider:
+            return hexc.HTTPNotFound()
+
         try:
-            provider = component.getMultiAdapter((self.context, self.request), IToolProvider)
-            provider.valid_request(self.request)
+            provider.valid_request()
         except:
-            #An error here is a bad oauth request
-            raise hexc.HTTPBadRequest()
+            return hexc.HTTPBadRequest()
 
         # TODO: Here, or in the base IToolProvider:respond we
         # need to provision any local accounts and setup sessions.
@@ -140,6 +143,6 @@ class LaunchProviderView(AbstractView):
         # the lti consumer that launched us, the tool, and in our
         # case the site.  That implies some level of hook here
         # either via adapter or event/subscriber
-        return provider.respond(self.request)
+        return provider.respond()
 
 
