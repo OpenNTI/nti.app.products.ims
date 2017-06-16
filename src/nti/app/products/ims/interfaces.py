@@ -49,3 +49,8 @@ class IOAuthRequestValidator(interface.Interface):
     An implementation of of oauthlib.oauth1.rfc5849.request_validator.RequestValidator
     that can be used to validate requests to SignatureOnlyEndpoint
     """
+
+class IOAuthNonceVerifier(interface.Interface):
+
+    def verify_nonce(nonce, expires=600):
+        pass

@@ -14,6 +14,9 @@
 	<utility factory=".oauth.OAuthSignatureOnlyValidator"
 			 provides=".interfaces.IOAuthRequestValidator"/>
 
+	<utility factory=".oauth.RedisNonceVerifier"
+			 provides=".interfaces.IOAuthNonceVerifier"/>
+
 	<adapter factory=".pyramid.PyramidLTIRequest"
 			 provides=".interfaces.ILTIRequest"
 			 for="pyramid.interfaces.IRequest" />

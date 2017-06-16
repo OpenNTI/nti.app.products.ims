@@ -12,17 +12,30 @@ from zope import interface
 from oauthlib.oauth1.rfc5849.request_validator import RequestValidator
 from oauthlib.oauth1.rfc5849.utils import UNICODE_ASCII_CHARACTER_SET
 
+from nti.coremetadata.interfaces import IRedisClient
+
 from .interfaces import IOAuthRequestValidator
+from .interfaces import IOAuthNonceVerifier
 
 from nti.ims.lti.interfaces import IOAuthConsumers
 
+LTI_NONCES = 'nti_lti_nonces'
 
 class RedisNonceVerifier(object):
     """
     A redis backed implementation of IOAuthNonceVerifier
     """
 
-    def verify_nonce(nonce, expires=None):
+    def _redis_client(self):
+        return component.getUtility(IRedisClient)
+
+    def verify_nonce(self, nonce, expires=600):
+        redis = self._redis_client()
+        if redis.hexists(LTI_NONCES, nonce):
+            raise ValueError('Bad nonce')
+        pipe = redis.pipeline()
+        pipe.hset(LTI_NONCES, nonce, 1).expire(nonce, expires)
+        pipe.execute()
         return True
 
 _DUMMY_CLIENT_KEY = '_nti_dummy_client_key'
@@ -76,8 +89,12 @@ class OAuthSignatureOnlyValidator(RequestValidator):
     def validate_timestamp_and_nonce(self, client_key, timestamp, nonce,
                                      request, request_token=None,
                                      access_token=None):
-        # TODO track this in redis and actually validate
-        return True
+        nonce_verifier = component.getUtility(IOAuthNonceVerifier)
+        try:
+            nonce_verifier.verify_nonce(nonce)
+            return True
+        except:
+            return False
 
 
 
