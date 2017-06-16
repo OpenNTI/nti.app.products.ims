@@ -129,4 +129,10 @@ class LaunchProvider(PyramidToolProvider):
         # TODO generate the url with the target_ntiid if we have one
         return hexc.HTTPSeeOther(location=_web_root())
 
+    def valid_request(self, request):
+        super(LaunchProvider, self).valid_request(request)
+        if not self.is_launch_request():
+            raise ValueError('Excpected a launch request')
+        return True
+
 
