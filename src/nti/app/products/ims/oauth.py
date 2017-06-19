@@ -6,6 +6,8 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
+import transaction
+
 from zope import component
 from zope import interface
 
@@ -14,20 +16,50 @@ from oauthlib.oauth1.rfc5849.utils import UNICODE_ASCII_CHARACTER_SET
 
 from nti.coremetadata.interfaces import IRedisClient
 
+from nti.transactions.transactions import ObjectDataManager
+
 from .interfaces import IOAuthRequestValidator
 from .interfaces import IOAuthNonceRecorder
 
 from nti.ims.lti.interfaces import IOAuthConsumers
 
+
 LTI_NONCES = 'nti_lti_nonces'
+
+class _AbortingDataManager(ObjectDataManager):
+    """
+    A datamanager which, unlike it's superclass, calls
+    the callable if the transaction aborts.
+
+    RedisNonceRecorder records nonces into redis at check time,
+    rather than waiting for our main transaction to commit,
+    in order to avoid time-of-check/time-of-use attacks.  This
+    datamanger calls the provided callable on rollback/abort
+    so that the nonce can be cleared from redis in case we
+    end up being retried
+    """
+
+    def tpc_finish(self, tx):
+        pass
+
+    def _abort(self):
+        self.callable(*self.args, **self.kwargs)
+
+    def abort(self, tx):
+        self._abort()
+
+    def rollback(self):
+        self._abort()
+
 
 class RedisNonceRecorder(object):
     """
     A redis backed implementation of IOAuthNonceVerifier
     """
+    _redis = None
 
     def _redis_client(self):
-        return component.getUtility(IRedisClient)
+        return self._redis or component.getUtility(IRedisClient)
 
     def record_nonce_received(self, nonce, expires=600):
         redis = self._redis_client()
@@ -36,8 +68,13 @@ class RedisNonceRecorder(object):
         pipe = redis.pipeline()
         pipe.hset(LTI_NONCES, nonce, 1).expire(nonce, expires)
         pipe.execute()
-        # TODO attach a datamanager we can use to rollback the redis
-        # value if the transaction is aborted
+        transaction.get().join(_AbortingDataManager(target=self,
+                                                    method_name='rollback',
+                                                    args=(redis, nonce)))
+
+    def rollback(self, redis, nonce):
+        redis.hdel(LTI_NONCES, nonce)
+
 
 _DUMMY_CLIENT_KEY = '_nti_dummy_client_key'
 _DUMMY_CLIENT_SECRET = '_nti_dummy_client_secret'
