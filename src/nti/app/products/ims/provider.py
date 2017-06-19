@@ -17,6 +17,8 @@ from zope import interface
 
 from zope.interface import Attribute
 
+from lti.utils import InvalidLTIRequestError
+
 from lti.tool_provider import ToolProvider as _ToolProvider
 
 from nti.ims.lti.interfaces import IOAuthConsumers
@@ -31,7 +33,7 @@ class ToolProvider(_ToolProvider):
     def valid_request(self):
         validator = component.getUtility(IOAuthRequestValidator)
         if not super(ToolProvider, self).is_valid_request(validator):
-            raise ValueError('Bad Request')
+            raise InvalidLTIRequestError()
         return True
 
 

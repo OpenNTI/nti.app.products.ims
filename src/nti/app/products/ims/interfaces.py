@@ -33,7 +33,7 @@ class IToolProvider(ITool):
     def valid_request():
         """
         Validates the provided request is a valid LTI
-        oauth request
+        oauth request.
         """
 
     def respond():
@@ -50,7 +50,12 @@ class IOAuthRequestValidator(interface.Interface):
     that can be used to validate requests to SignatureOnlyEndpoint
     """
 
-class IOAuthNonceVerifier(interface.Interface):
+class IOAuthNonceRecorder(interface.Interface):
 
-    def verify_nonce(nonce, expires=600):
-        pass
+    def record_nonce_received(nonce, expires=600):
+        """
+        Records the provided nonce as having been seen.
+        If a nonce is reused within the provided expires
+        time a key error is raised
+        """
+

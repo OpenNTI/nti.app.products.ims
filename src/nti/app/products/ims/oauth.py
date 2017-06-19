@@ -15,13 +15,13 @@ from oauthlib.oauth1.rfc5849.utils import UNICODE_ASCII_CHARACTER_SET
 from nti.coremetadata.interfaces import IRedisClient
 
 from .interfaces import IOAuthRequestValidator
-from .interfaces import IOAuthNonceVerifier
+from .interfaces import IOAuthNonceRecorder
 
 from nti.ims.lti.interfaces import IOAuthConsumers
 
 LTI_NONCES = 'nti_lti_nonces'
 
-class RedisNonceVerifier(object):
+class RedisNonceRecorder(object):
     """
     A redis backed implementation of IOAuthNonceVerifier
     """
@@ -29,18 +29,20 @@ class RedisNonceVerifier(object):
     def _redis_client(self):
         return component.getUtility(IRedisClient)
 
-    def verify_nonce(self, nonce, expires=600):
+    def record_nonce_received(self, nonce, expires=600):
         redis = self._redis_client()
         if redis.hexists(LTI_NONCES, nonce):
-            raise ValueError('Bad nonce')
+            raise KeyError(nonce)
         pipe = redis.pipeline()
         pipe.hset(LTI_NONCES, nonce, 1).expire(nonce, expires)
         pipe.execute()
-        return True
+        # TODO attach a datamanager we can use to rollback the redis
+        # value if the transaction is aborted
 
 _DUMMY_CLIENT_KEY = '_nti_dummy_client_key'
 _DUMMY_CLIENT_SECRET = '_nti_dummy_client_secret'
 
+_SAFE_CHARS = set(UNICODE_ASCII_CHARACTER_SET) | set('.')
 
 @interface.implementer(IOAuthRequestValidator)
 class OAuthSignatureOnlyValidator(RequestValidator):
@@ -49,7 +51,7 @@ class OAuthSignatureOnlyValidator(RequestValidator):
     the required methods for use with a SignatureOnlyEndpoint
     """
 
-    enforce_ssl = False
+    enforce_ssl = True
 
     @property
     def client_key_length(self):
@@ -61,7 +63,7 @@ class OAuthSignatureOnlyValidator(RequestValidator):
 
     @property
     def safe_characters(self):
-        return set(UNICODE_ASCII_CHARACTER_SET) | set('.')
+        return _SAFE_CHARS
 
     def _consumer(self, key):
         consumers = component.getUtility(IOAuthConsumers)
@@ -89,13 +91,18 @@ class OAuthSignatureOnlyValidator(RequestValidator):
     def validate_timestamp_and_nonce(self, client_key, timestamp, nonce,
                                      request, request_token=None,
                                      access_token=None):
-        nonce_verifier = component.getUtility(IOAuthNonceVerifier)
+        nonces = component.getUtility(IOAuthNonceRecorder)
         try:
-            nonce_verifier.verify_nonce(nonce)
+            nonces.record_nonce_received(nonce, expires=self.timestamp_lifetime)
             return True
-        except:
+        except KeyError:
             return False
 
+
+@interface.implementer(IOAuthRequestValidator)
+class DevModeOAuthValidator(OAuthSignatureOnlyValidator):
+
+    enforce_ssl = False
 
 
 

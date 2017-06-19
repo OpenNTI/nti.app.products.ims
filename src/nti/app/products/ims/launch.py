@@ -22,6 +22,8 @@ import urlparse
 from zope import component
 from zope import interface
 
+from lti.utils import InvalidLTIRequestError
+
 from nti.appserver.interfaces import IApplicationSettings
 
 from nti.appserver.policies.interfaces import ISitePolicyUserEventListener
@@ -131,6 +133,6 @@ class LaunchProvider(ToolProvider):
     def valid_request(self):
         super(LaunchProvider, self).valid_request()
         if not self.is_launch_request():
-            raise ValueError('Expected launch request')
+            raise InvalidLTIRequestError('Expected launch request')
 
 

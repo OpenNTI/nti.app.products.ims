@@ -11,11 +11,17 @@
 	<include package="nti.ims" />
 
 	<!-- OAuth -->
-	<utility factory=".oauth.OAuthSignatureOnlyValidator"
-			 provides=".interfaces.IOAuthRequestValidator"/>
+	<configure zcml:condition="not-have devmode">
+		<utility factory=".oauth.OAuthSignatureOnlyValidator"
+				 provides=".interfaces.IOAuthRequestValidator"/>
+	</configure>
+	<configure zcml:condition="have devmode">
+		<utility factory=".oauth.DevModeOAuthValidator"
+				 provides=".interfaces.IOAuthRequestValidator"/>
+	</configure>
 
-	<utility factory=".oauth.RedisNonceVerifier"
-			 provides=".interfaces.IOAuthNonceVerifier"/>
+	<utility factory=".oauth.RedisNonceRecorder"
+			 provides=".interfaces.IOAuthNonceRecorder"/>
 
 	<adapter factory=".pyramid.PyramidLTIRequest"
 			 provides=".interfaces.ILTIRequest"

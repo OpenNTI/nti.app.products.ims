@@ -9,6 +9,8 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
+from lti.utils import InvalidLTIRequestError
+
 from pyramid import httpexceptions as hexc
 
 from pyramid.view import view_config
@@ -134,7 +136,7 @@ class LaunchProviderView(AbstractView):
 
         try:
             provider.valid_request()
-        except:
+        except InvalidLTIRequestError:
             return hexc.HTTPBadRequest()
 
         # TODO: Here, or in the base IToolProvider:respond we
