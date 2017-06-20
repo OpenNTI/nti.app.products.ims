@@ -33,7 +33,7 @@ class ToolProvider(_ToolProvider):
     def valid_request(self):
         validator = component.getUtility(IOAuthRequestValidator)
         if not super(ToolProvider, self).is_valid_request(validator):
-            raise InvalidLTIRequestError()
+            raise InvalidLTIRequestError('Invalid LTI Request')
         return True
 
 
