@@ -130,13 +130,14 @@ class LaunchProviderView(AbstractView):
 
     def __call__(self):
         lti_request = ILTIRequest(self.request)
-        provider = component.queryMultiAdapter((self.context, lti_request), IToolProvider)
-        if not provider:
-            return hexc.HTTPNotFound()
 
         try:
+            provider = component.queryMultiAdapter((self.context, lti_request), IToolProvider)
+            if not provider:
+                return hexc.HTTPNotFound()
             provider.valid_request()
         except InvalidLTIRequestError:
+            logger.exception('Invalid LTI Request')
             return hexc.HTTPBadRequest()
 
         # TODO: Here, or in the base IToolProvider:respond we

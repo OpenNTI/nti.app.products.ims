@@ -76,8 +76,8 @@ class RedisNonceRecorder(object):
         redis.hdel(LTI_NONCES, nonce)
 
 
-_DUMMY_CLIENT_KEY = '_nti_dummy_client_key'
-_DUMMY_CLIENT_SECRET = '_nti_dummy_client_secret'
+_DUMMY_CLIENT_KEY = u'_nti_dummy_client_key'
+_DUMMY_CLIENT_SECRET = u'_nti_dummy_client_secret'
 
 _SAFE_CHARS = set(UNICODE_ASCII_CHARACTER_SET) | set('.')
 
