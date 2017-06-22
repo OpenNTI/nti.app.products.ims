@@ -20,3 +20,6 @@ LTI = u'LTI'
 
 #: SIS Path
 SIS = u'SIS'
+
+#: Tools Path
+TOOLS = u'TOOLS'

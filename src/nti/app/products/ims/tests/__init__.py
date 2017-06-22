@@ -39,3 +39,29 @@ class SharedConfiguringTestLayer(ZopeComponentLayer,
     @classmethod
     def testTearDown(cls):
         pass
+
+class NonDevModeConfiguringTestLayer(ZopeComponentLayer,
+                                 GCLayerMixin,
+                                 ConfiguringLayerMixin,
+                                 DSInjectorMixin):
+
+    set_up_packages = ('nti.dataserver', 'nti.app.products.ims')
+
+    features = ()
+
+    @classmethod
+    def setUp(cls):
+        cls.setUpPackages()
+
+    @classmethod
+    def tearDown(cls):
+        cls.tearDownPackages()
+        zope.testing.cleanup.cleanUp()
+
+    @classmethod
+    def testSetUp(cls, test=None):
+        cls.setUpTestDS(test)
+
+    @classmethod
+    def testTearDown(cls):
+        pass

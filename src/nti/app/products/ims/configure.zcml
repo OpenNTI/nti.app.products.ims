@@ -9,7 +9,26 @@
 	<include package="zope.security" />
 
 	<include package="nti.ims" />
-	
+
+	<!-- OAuth -->
+	<configure zcml:condition="not-have devmode">
+		<utility factory=".oauth.OAuthSignatureOnlyValidator"
+				 provides=".interfaces.IOAuthRequestValidator"/>
+	</configure>
+	<configure zcml:condition="have devmode">
+		<utility factory=".oauth.DevModeOAuthValidator"
+				 provides=".interfaces.IOAuthRequestValidator"/>
+	</configure>
+
+	<utility factory=".oauth.RedisNonceRecorder"
+			 provides=".interfaces.IOAuthNonceRecorder"/>
+
+	<adapter factory=".pyramid.PyramidLTIRequest"
+			 provides=".interfaces.ILTIRequest"
+			 for="pyramid.interfaces.IRequest" />
+
+	<!-- Pyramid traversal -->
+
 	<adapter name="IMS"
 			 factory=".views.IMSPathAdapter"
 			 provides="zope.traversing.interfaces.IPathAdapter"
@@ -20,9 +39,31 @@
 			 provides="zope.traversing.interfaces.IPathAdapter"
 			 for="nti.dataserver.interfaces.IDataserverFolder pyramid.interfaces.IRequest" />
 
+	<adapter factory="nti.traversal.traversal.DefaultAdapterTraversable"
+			 for=".views.LTIPathAdapter pyramid.interfaces.IRequest" />
+
 	<adapter name="SIS"
 			 factory=".views.SISPathAdapter"
 			 provides="zope.traversing.interfaces.IPathAdapter"
 			 for="nti.dataserver.interfaces.IDataserverFolder pyramid.interfaces.IRequest" />
+
+	<adapter name="TOOLS"
+			 factory=".views.ToolProvidersAdapter"
+			 provides="zope.traversing.interfaces.IPathAdapter"
+			 for=".views.LTIPathAdapter pyramid.interfaces.IRequest" />
+
+	<!-- Register our tool, config factory, and provider for a basic Launch Tool-->
+
+	<adapter factory=".launch.LaunchToolConfigFactory"
+			 provides="nti.ims.lti.interfaces.IToolConfigFactory"
+			 for=".launch.LaunchTool" />
+
+	<utility factory=".launch.LaunchTool"
+			 provides="nti.ims.lti.interfaces.ITool"
+			 name="launch"/>
+
+	<adapter factory=".launch._provider_factory"
+			 provides=".interfaces.IToolProvider"
+			 for=".launch.LaunchTool .interfaces.ILTIRequest" />
 
 </configure>
