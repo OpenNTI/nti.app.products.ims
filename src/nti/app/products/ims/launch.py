@@ -13,16 +13,16 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
-from zope import interface
-
-from pyramid import httpexceptions as hexc
-
-import urlparse
+from lti.utils import InvalidLTIRequestError
 
 from zope import component
 from zope import interface
 
-from lti.utils import InvalidLTIRequestError
+from pyramid import httpexceptions as hexc
+
+from nti.app.products.ims.interfaces import IToolProvider
+
+from nti.app.products.ims.provider import ToolProvider
 
 from nti.appserver.interfaces import IApplicationSettings
 
@@ -30,12 +30,8 @@ from nti.appserver.policies.interfaces import ISitePolicyUserEventListener
 
 from nti.ims.lti.config import ToolConfigFactory
 
-from nti.ims.lti.interfaces import IOAuthConsumers
 from nti.ims.lti.interfaces import ITool
 
-from .interfaces import IToolProvider
-
-from .provider import ToolProvider
 
 @interface.implementer(ITool)
 class LaunchTool(object):
@@ -51,11 +47,12 @@ class LaunchTool(object):
 
     @property
     def title(self):
-        return 'Launch ' + self.site_policy_listener.BRAND
+        return u'Launch ' + getattr(self.site_policy_listener, 'BRAND', u'')
 
     @property
     def description(self):
         return self.title
+
 
 class LaunchToolConfigFactory(ToolConfigFactory):
     """
@@ -68,28 +65,29 @@ class LaunchToolConfigFactory(ToolConfigFactory):
 
     def __call__(self):
         config = super(LaunchToolConfigFactory, self).__call__()
-
-        # TODO Should probably pull these out into subscribers
+        # TODO: Should probably pull these out into subscribers
         canvas_ext = {
             'oauth_compliant': 'true',
             'privacy_level': 'Public'
         }
         config.set_ext_params('canvas.instructure.com', canvas_ext)
-
         return config
+
 
 def _web_root():
     settings = component.getUtility(IApplicationSettings)
     web_root = settings.get('web_app_root', '/NextThoughtWebApp/')
     return web_root
 
-NTIID_PARAM_NAME = 'nti_ntiid'
 
 def _provider_factory(tool, request):
     return LaunchProvider.from_unpacked_request(None,
                                                 request.params,
                                                 request.url,
                                                 request.headers)
+
+
+NTIID_PARAM_NAME = 'nti_ntiid'
 
 
 @interface.implementer(IToolProvider)
@@ -127,12 +125,10 @@ class LaunchProvider(ToolProvider):
         # doesn't belong here.  We could spring board this through
         # another interface
 
-        # TODO generate the url with the target_ntiid if we have one
+        # TODO: generate the url with the target_ntiid if we have one
         return hexc.HTTPSeeOther(location=_web_root())
 
     def valid_request(self):
         super(LaunchProvider, self).valid_request()
         if not self.is_launch_request():
             raise InvalidLTIRequestError('Expected launch request')
-
-

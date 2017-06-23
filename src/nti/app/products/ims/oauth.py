@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+.. $Id$
+"""
 
 from __future__ import print_function, absolute_import, division
 __docformat__ = "restructuredtext en"
@@ -12,19 +15,20 @@ from zope import component
 from zope import interface
 
 from oauthlib.oauth1.rfc5849.request_validator import RequestValidator
+
 from oauthlib.oauth1.rfc5849.utils import UNICODE_ASCII_CHARACTER_SET
 
-from nti.coremetadata.interfaces import IRedisClient
+from nti.app.products.ims.interfaces import IOAuthNonceRecorder
+from nti.app.products.ims.interfaces import IOAuthRequestValidator
+
+from nti.dataserver.interfaces import IRedisClient
 
 from nti.transactions.transactions import ObjectDataManager
 
-from .interfaces import IOAuthRequestValidator
-from .interfaces import IOAuthNonceRecorder
-
 from nti.ims.lti.interfaces import IOAuthConsumers
 
+LTI_NONCES = '++etc++ims++queue++nti_lti_nonces'
 
-LTI_NONCES = 'nti_lti_nonces'
 
 class _AbortingDataManager(ObjectDataManager):
     """
@@ -39,13 +43,13 @@ class _AbortingDataManager(ObjectDataManager):
     end up being retried
     """
 
-    def tpc_finish(self, tx):
+    def tpc_finish(self, _):
         pass
 
     def _abort(self):
         self.callable(*self.args, **self.kwargs)
 
-    def abort(self, tx):
+    def abort(self, _):
         self._abort()
 
     def rollback(self):
@@ -66,8 +70,7 @@ class RedisNonceRecorder(object):
         if redis.hexists(LTI_NONCES, nonce):
             raise KeyError(nonce)
         pipe = redis.pipeline()
-        pipe.hset(LTI_NONCES, nonce, 1).expire(nonce, expires)
-        pipe.execute()
+        pipe.hset(LTI_NONCES, nonce, 1).expire(nonce, expires).execute()
         transaction.get().join(_AbortingDataManager(target=self,
                                                     method_name='rollback',
                                                     args=(redis, nonce)))
@@ -80,6 +83,7 @@ _DUMMY_CLIENT_KEY = u'_nti_dummy_client_key'
 _DUMMY_CLIENT_SECRET = u'_nti_dummy_client_secret'
 
 _SAFE_CHARS = set(UNICODE_ASCII_CHARACTER_SET) | set('.')
+
 
 @interface.implementer(IOAuthRequestValidator)
 class OAuthSignatureOnlyValidator(RequestValidator):
@@ -96,7 +100,7 @@ class OAuthSignatureOnlyValidator(RequestValidator):
 
     @property
     def nonce_length(self):
-        return 20, 64 #At least canvas is producing nonces of len == 32
+        return 20, 64  # At least canvas is producing nonces of len == 32
 
     @property
     def safe_characters(self):
@@ -116,7 +120,7 @@ class OAuthSignatureOnlyValidator(RequestValidator):
         try:
             return self._consumer(client_key).secret
         except KeyError:
-            #client_key should always be the dummy key here
+            # client_key should always be the dummy key here
             return _DUMMY_CLIENT_SECRET
 
     def validate_client_key(self, client_key, request):
@@ -128,9 +132,10 @@ class OAuthSignatureOnlyValidator(RequestValidator):
     def validate_timestamp_and_nonce(self, client_key, timestamp, nonce,
                                      request, request_token=None,
                                      access_token=None):
-        nonces = component.getUtility(IOAuthNonceRecorder)
         try:
-            nonces.record_nonce_received(nonce, expires=self.timestamp_lifetime)
+            nonces = component.getUtility(IOAuthNonceRecorder)
+            nonces.record_nonce_received(nonce, 
+                                         expires=self.timestamp_lifetime)
             return True
         except KeyError:
             return False
@@ -140,8 +145,3 @@ class OAuthSignatureOnlyValidator(RequestValidator):
 class DevModeOAuthValidator(OAuthSignatureOnlyValidator):
 
     enforce_ssl = False
-
-
-
-
-

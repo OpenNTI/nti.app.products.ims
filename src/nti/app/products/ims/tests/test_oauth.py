@@ -7,35 +7,37 @@ __docformat__ = "restructuredtext en"
 # disable: accessing protected members, too many methods
 # pylint: disable=W0212,R0904
 
-import fakeredis
-
-from hamcrest import assert_that
-from hamcrest import calling
 from hamcrest import is_
-from hamcrest import not_none
 from hamcrest import raises
+from hamcrest import calling
+from hamcrest import not_none
+from hamcrest import assert_that
 
 import unittest
+
+import fakeredis
 
 import transaction
 
 from zope import component
 
-from nti.dataserver.tests.mock_dataserver import WithMockDSTrans
+from nti.app.products.ims.interfaces import IOAuthNonceRecorder
+from nti.app.products.ims.interfaces import IOAuthRequestValidator
+
+from nti.app.products.ims.oauth import _DUMMY_CLIENT_KEY
+from nti.app.products.ims.oauth import _DUMMY_CLIENT_SECRET
+
+from nti.app.products.ims.oauth import RedisNonceRecorder
 
 from nti.ims.lti.interfaces import IOAuthConsumers
 
 from nti.ims.lti.oauth import OAuthConsumer
 
-from . import NonDevModeConfiguringTestLayer
-from . import SharedConfiguringTestLayer
+from nti.app.products.ims.tests import SharedConfiguringTestLayer
+from nti.app.products.ims.tests import NonDevModeConfiguringTestLayer
 
-from ..interfaces import IOAuthRequestValidator
-from ..interfaces import IOAuthNonceRecorder
+from nti.dataserver.tests.mock_dataserver import WithMockDSTrans
 
-from ..oauth import RedisNonceRecorder
-from ..oauth import _DUMMY_CLIENT_KEY
-from ..oauth import _DUMMY_CLIENT_SECRET
 
 class TestRedisNonceTracking(unittest.TestCase):
 
@@ -55,19 +57,17 @@ class TestRedisNonceTracking(unittest.TestCase):
     def test_recording(self):
         # we can record a nonce
         self.recorder.record_nonce_received('foo')
-
         # but trying to record it again raises a KeyError
-        assert_that(calling(self.recorder.record_nonce_received).with_args('foo'), raises(KeyError))
+        assert_that(calling(self.recorder.record_nonce_received).with_args('foo'),
+                    raises(KeyError))
 
     @WithMockDSTrans
     def test_recording_aborted(self):
         self.recorder.record_nonce_received('foo')
-
         # If the transaction gets aborted the recorder should
         # revert and the nonce is available
         transaction.get().abort()
         self.recorder.record_nonce_received('foo')
-
 
 
 class TestValidator(unittest.TestCase):
@@ -92,31 +92,37 @@ class TestValidator(unittest.TestCase):
         return consumer
 
     def test_registered(self):
-        assert_that(self.validator, not_none())
+        assert_that(self.validator, is_(not_none()))
 
     def test_enforce_ssl(self):
         assert_that(self.validator.enforce_ssl, is_(True))
 
     def test_keys_with_dots(self):
-        assert_that(self.validator.check_client_key('dev.nextthought.com'), is_(True))
+        assert_that(self.validator.check_client_key('dev.nextthought.com'),
+                    is_(True))
 
     def test_canvas_nonce_length(self):
-        assert_that(self.validator.check_nonce('D558CF552A572A2DCA3AEAC43F0A2217'))
+        nonce = 'D558CF552A572A2DCA3AEAC43F0A2217'
+        assert_that(self.validator.check_nonce(nonce))
 
     def test_validate_client_key(self):
-        assert_that(self.validator.validate_client_key('dev.nextthought.com', None), is_(False))
+        assert_that(self.validator.validate_client_key('dev.nextthought.com', None), 
+                    is_(False))
 
         self._register_consumer(u'dev.nextthought.com', u'blahblahblah')
 
-        assert_that(self.validator.validate_client_key('dev.nextthought.com', None), is_(True))
-
-
+        assert_that(self.validator.validate_client_key('dev.nextthought.com', None), 
+                    is_(True))
 
     def test_get_secret(self):
-        assert_that(self.validator.get_client_secret(_DUMMY_CLIENT_KEY, None), is_(_DUMMY_CLIENT_SECRET))
+        assert_that(self.validator.get_client_secret(_DUMMY_CLIENT_KEY, None), 
+                    is_(_DUMMY_CLIENT_SECRET))
 
-        consumer = self._register_consumer(u'dev.nextthought.com', u'blahblahblah')
-        assert_that(self.validator.get_client_secret(consumer.key, None), is_(consumer.secret))
+        consumer = self._register_consumer(u'dev.nextthought.com',
+                                           u'blahblahblah')
+
+        assert_that(self.validator.get_client_secret(consumer.key, None), 
+                    is_(consumer.secret))
 
 
 class TestDevModeValidator(unittest.TestCase):
@@ -131,8 +137,3 @@ class TestDevModeValidator(unittest.TestCase):
 
     def test_ssl_not_required(self):
         assert_that(self.validator.enforce_ssl, is_(False))
-
-
-
-
-

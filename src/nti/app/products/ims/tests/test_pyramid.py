@@ -17,9 +17,10 @@ from hamcrest import has_entries
 
 from pyramid.testing import DummyRequest
 
-from . import SharedConfiguringTestLayer
+from nti.app.products.ims.interfaces import ILTIRequest
 
-from ..interfaces import ILTIRequest
+from nti.app.products.ims.tests import SharedConfiguringTestLayer
+
 
 class TestPyramidLTIRequest(unittest.TestCase):
 
@@ -43,4 +44,3 @@ class TestPyramidLTIRequest(unittest.TestCase):
 
         assert_that(lti_request.url, is_('http://example.com'))
         assert_that(lti_request.params, has_entries('foo', 'bar'))
-
