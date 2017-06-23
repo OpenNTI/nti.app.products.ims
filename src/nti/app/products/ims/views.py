@@ -111,15 +111,15 @@ class ExecuteProviderView(AbstractView):
         request = self.request
         provider = self.context
         conf = IToolConfigFactory(provider)()
-    
+
         launch_link = Link(provider)
         interface.alsoProvides(launch_link, ILinkExternalHrefOnly)
         if not conf.launch_url:
             conf.launch_url = request.relative_url(render_link(launch_link))
         if not conf.secure_launch_url:
             conf.secure_launch_url = conf.launch_url
-    
-        # TODO seems like there should be a hook somewhere that we
+
+        # TODO: seems like there should be a hook somewhere that we
         # can use to just return the config here and let the normal
         # rendering machinary call to_xml and set a content type?
         resp = request.response
