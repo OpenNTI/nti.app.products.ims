@@ -40,10 +40,11 @@ class SharedConfiguringTestLayer(ZopeComponentLayer,
     def testTearDown(cls):
         pass
 
+
 class NonDevModeConfiguringTestLayer(ZopeComponentLayer,
-                                 GCLayerMixin,
-                                 ConfiguringLayerMixin,
-                                 DSInjectorMixin):
+                                     GCLayerMixin,
+                                     ConfiguringLayerMixin,
+                                     DSInjectorMixin):
 
     set_up_packages = ('nti.dataserver', 'nti.app.products.ims')
 

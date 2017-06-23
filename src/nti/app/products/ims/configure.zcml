@@ -20,15 +20,16 @@
 				 provides=".interfaces.IOAuthRequestValidator"/>
 	</configure>
 
+	<!-- Utilities -->
 	<utility factory=".oauth.RedisNonceRecorder"
 			 provides=".interfaces.IOAuthNonceRecorder"/>
 
+	<!-- Adapters -->
 	<adapter factory=".pyramid.PyramidLTIRequest"
 			 provides=".interfaces.ILTIRequest"
 			 for="pyramid.interfaces.IRequest" />
 
 	<!-- Pyramid traversal -->
-
 	<adapter name="IMS"
 			 factory=".views.IMSPathAdapter"
 			 provides="zope.traversing.interfaces.IPathAdapter"
@@ -52,8 +53,7 @@
 			 provides="zope.traversing.interfaces.IPathAdapter"
 			 for=".views.LTIPathAdapter pyramid.interfaces.IRequest" />
 
-	<!-- Register our tool, config factory, and provider for a basic Launch Tool-->
-
+	<!-- Register our tool, config factory, and provider for a basic Launch Tool -->
 	<adapter factory=".launch.LaunchToolConfigFactory"
 			 provides="nti.ims.lti.interfaces.IToolConfigFactory"
 			 for=".launch.LaunchTool" />

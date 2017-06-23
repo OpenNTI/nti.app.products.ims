@@ -13,13 +13,13 @@ import zope.i18nmessageid
 MessageFactory = zope.i18nmessageid.MessageFactory(__name__)
 
 #: IMS Path
-IMS = u'IMS'
+IMS = 'IMS'
 
 #: LTI Path
-LTI = u'LTI'
+LTI = 'LTI'
 
 #: SIS Path
-SIS = u'SIS'
+SIS = 'SIS'
 
 #: Tools Path
-TOOLS = u'TOOLS'
+TOOLS = 'TOOLS'
