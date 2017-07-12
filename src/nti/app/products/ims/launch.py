@@ -33,7 +33,7 @@ from nti.ims.lti.config import ToolConfigFactory
 
 from nti.ims.lti.interfaces import ITool
 
-from nti.ims.lti.interfaces import IToolConfigBuilder
+from nti.ims.lti.interfaces import IToolConfigBuilder, IToolConfig
 
 
 @interface.implementer(ITool)
@@ -59,8 +59,7 @@ class LaunchTool(object):
 
 class LaunchToolConfigFactory(ToolConfigFactory):
     """
-    A launch tool config that makes sure canvas requests all user
-    data and that the request from canvas is oauth compliant
+    A launch tool config
     """
 
     def __init__(self, tool):
@@ -69,7 +68,7 @@ class LaunchToolConfigFactory(ToolConfigFactory):
     def __call__(self):
         config = super(LaunchToolConfigFactory, self).__call__()
         # Add consumer specific config details
-        for builder in subscribers([config], IToolConfigBuilder):
+        for builder in subscribers((config,), IToolConfigBuilder):
             config = builder.configure(config)
         return config
 
