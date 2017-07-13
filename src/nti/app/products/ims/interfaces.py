@@ -66,3 +66,25 @@ class IOAuthNonceRecorder(interface.Interface):
         """
 
 
+class ISession(interface.Interface):
+
+    source = Attribute(u'Consumer key')
+
+    resource_url = Attribute(u'Resource url being requested')
+
+    user_id = Attribute(u'ID of user the session is issued to')
+
+    timeframe = Attribute(u'Lifespan of the session')
+
+
+class ISessionFactory(ISession):
+
+    def begin_session(request):
+        """
+        Initializes a session and returns the appropriate content
+        """
+
+class IRequest(interface.Interface):
+    """
+    Consumer request
+    """
