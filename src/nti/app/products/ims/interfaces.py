@@ -5,6 +5,9 @@
 """
 
 from __future__ import print_function, absolute_import, division
+
+from nti.schema.field import ValidTextLine
+
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
@@ -37,7 +40,7 @@ class IToolProvider(ITool):
         oauth request.
         """
 
-    def respond():
+    def respond(request):
         """
         Creates a response / renderable object that should
         be used to launch the tool.  The return value
@@ -61,3 +64,5 @@ class IOAuthNonceRecorder(interface.Interface):
         If a nonce is reused within the provided expires
         time a key error is raised
         """
+
+

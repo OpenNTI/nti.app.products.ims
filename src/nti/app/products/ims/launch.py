@@ -19,13 +19,9 @@ from zope import component
 from zope import interface
 from zope.component import subscribers
 
-from pyramid import httpexceptions as hexc
-
 from nti.app.products.ims.interfaces import IToolProvider
 
 from nti.app.products.ims.provider import ToolProvider
-
-from nti.appserver.interfaces import IApplicationSettings
 
 from nti.appserver.policies.interfaces import ISitePolicyUserEventListener
 
@@ -33,7 +29,7 @@ from nti.ims.lti.config import ToolConfigFactory
 
 from nti.ims.lti.interfaces import ITool
 
-from nti.ims.lti.interfaces import IToolConfigBuilder, IToolConfig
+from nti.ims.lti.interfaces import IToolConfigBuilder
 
 
 @interface.implementer(ITool)
@@ -71,13 +67,6 @@ class LaunchToolConfigFactory(ToolConfigFactory):
         for builder in subscribers((config,), IToolConfigBuilder):
             config = builder.configure(config)
         return config
-
-
-def _web_root():
-    settings = component.getUtility(IApplicationSettings)
-    web_root = settings.get('web_app_root', '/NextThoughtWebApp/')
-    return web_root
-
 
 def _provider_factory(tool, request):
     return LaunchProvider.from_unpacked_request(None,
@@ -117,7 +106,8 @@ class LaunchProvider(ToolProvider):
     def description(self):
         return self.tool.description
 
-    def respond(self):
+    def respond(self, request):
+        super(LaunchProvider, self).respond(request)
         # TODO seems like we should have some component/utility
         # somewhere that knows how to generate a web platform
         # url for an ntiid or id.  Regardless this probably
@@ -125,7 +115,7 @@ class LaunchProvider(ToolProvider):
         # another interface
 
         # TODO: generate the url with the target_ntiid if we have one
-        return hexc.HTTPSeeOther(location=_web_root())
+
 
     def valid_request(self):
         super(LaunchProvider, self).valid_request()
