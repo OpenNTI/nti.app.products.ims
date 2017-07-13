@@ -29,6 +29,20 @@
 			 provides=".interfaces.ILTIRequest"
 			 for="pyramid.interfaces.IRequest" />
 
+	<adapter factory=".session.SISSession"
+	         provides=".interfaces.ISessionFactory"
+	         for=".interfaces.ISession"
+	         name = "" />
+
+	<adapter factory=".session.JanuxSession"
+	         provides=".interfaces.ISessionFactory"
+	         for=".interfaces.ISession"
+	         name="janux" />
+
+	<adapter factory=".request.Request"
+	         provides=".interfaces.IRequest"
+	         for=".interfaces.ISessionFactory" />
+
 	<!-- Pyramid traversal -->
 	<adapter name="IMS"
 			 factory=".views.IMSPathAdapter"

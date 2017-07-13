@@ -18,20 +18,15 @@ from lti.utils import InvalidLTIRequestError
 from zope import component
 from zope import interface
 
-from pyramid import httpexceptions as hexc
-
 from nti.app.products.ims.interfaces import IToolProvider
 
 from nti.app.products.ims.provider import ToolProvider
-
-from nti.appserver.interfaces import IApplicationSettings
 
 from nti.appserver.policies.interfaces import ISitePolicyUserEventListener
 
 from nti.ims.lti.config import ToolConfigFactory
 
 from nti.ims.lti.interfaces import ITool
-
 
 @interface.implementer(ITool)
 class LaunchTool(object):
@@ -56,8 +51,7 @@ class LaunchTool(object):
 
 class LaunchToolConfigFactory(ToolConfigFactory):
     """
-    A launch tool config that makes sure canvas requests all user
-    data and that the request from canvas is oauth compliant
+    A launch tool config
     """
 
     def __init__(self, tool):
@@ -72,12 +66,6 @@ class LaunchToolConfigFactory(ToolConfigFactory):
         }
         config.set_ext_params('canvas.instructure.com', canvas_ext)
         return config
-
-
-def _web_root():
-    settings = component.getUtility(IApplicationSettings)
-    web_root = settings.get('web_app_root', '/NextThoughtWebApp/')
-    return web_root
 
 
 def _provider_factory(tool, request):
@@ -118,7 +106,8 @@ class LaunchProvider(ToolProvider):
     def description(self):
         return self.tool.description
 
-    def respond(self):
+    def respond(self, request):
+        super(LaunchProvider, self).respond(request)
         # TODO seems like we should have some component/utility
         # somewhere that knows how to generate a web platform
         # url for an ntiid or id.  Regardless this probably
@@ -126,7 +115,7 @@ class LaunchProvider(ToolProvider):
         # another interface
 
         # TODO: generate the url with the target_ntiid if we have one
-        return hexc.HTTPSeeOther(location=_web_root())
+
 
     def valid_request(self):
         super(LaunchProvider, self).valid_request()

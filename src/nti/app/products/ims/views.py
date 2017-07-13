@@ -151,4 +151,4 @@ class LaunchProviderView(AbstractView):
         # the lti consumer that launched us, the tool, and in our
         # case the site.  That implies some level of hook here
         # either via adapter or event/subscriber
-        return provider.respond()
+        return provider.respond(self.request)
