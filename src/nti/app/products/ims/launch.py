@@ -17,7 +17,6 @@ from lti.utils import InvalidLTIRequestError
 
 from zope import component
 from zope import interface
-from zope.component import subscribers
 
 from nti.app.products.ims.interfaces import IToolProvider
 
@@ -28,9 +27,6 @@ from nti.appserver.policies.interfaces import ISitePolicyUserEventListener
 from nti.ims.lti.config import ToolConfigFactory
 
 from nti.ims.lti.interfaces import ITool
-
-from nti.ims.lti.interfaces import IToolConfigBuilder
-
 
 @interface.implementer(ITool)
 class LaunchTool(object):
@@ -63,10 +59,14 @@ class LaunchToolConfigFactory(ToolConfigFactory):
 
     def __call__(self):
         config = super(LaunchToolConfigFactory, self).__call__()
-        # Add consumer specific config details
-        for builder in subscribers((config,), IToolConfigBuilder):
-            config = builder.configure(config)
+        # TODO: Should probably pull these out into subscribers
+        canvas_ext = {
+            'oauth_compliant': 'true',
+            'privacy_level': 'Public'
+        }
+        config.set_ext_params('canvas.instructure.com', canvas_ext)
         return config
+
 
 def _provider_factory(tool, request):
     return LaunchProvider.from_unpacked_request(None,
