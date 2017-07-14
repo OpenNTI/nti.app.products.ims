@@ -37,14 +37,6 @@ class IToolProvider(ITool):
         oauth request.
         """
 
-    def respond():
-        """
-        Creates a response / renderable object that should
-        be used to launch the tool.  The return value
-        from this function should be suitable for returning
-        from a view callable
-        """
-
 
 class IOAuthRequestValidator(interface.Interface):
     """
