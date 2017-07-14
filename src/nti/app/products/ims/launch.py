@@ -96,15 +96,9 @@ class LaunchProvider(ToolProvider):
     def description(self):
         return self.tool.description
 
-    def respond(self):
-        # TODO seems like we should have some component/utility
-        # somewhere that knows how to generate a web platform
-        # url for an ntiid or id.  Regardless this probably
-        # doesn't belong here.  We could spring board this through
-        # another interface
-
-        # TODO: generate the url with the target_ntiid if we have one
-        return hexc.HTTPSeeOther(location=_web_root())
+    @property
+    def tool_url(self):
+        return _web_root()
 
     def valid_request(self):
         super(LaunchProvider, self).valid_request()
