@@ -53,3 +53,21 @@ class IOAuthNonceRecorder(interface.Interface):
         If a nonce is reused within the provided expires
         time a key error is raised
         """
+
+
+class IIMSInfoValidator(interface.Interface):
+    """
+    Given a launch request, returns if the relevant info is present and well formed for a specific source
+    Can be used to validate site and/or LMS info
+    """
+
+    def __call__(request):
+        """
+        :return: tuple (provisioning adapter name, required boolean) None if unfound
+        """
+
+
+class IIMSSessionProvision(interface.Interface):
+    """
+    Provisions a session for a request
+    """
