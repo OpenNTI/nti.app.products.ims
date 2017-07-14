@@ -28,4 +28,3 @@ class ToolProvider(_ToolProvider):
         if not super(ToolProvider, self).is_valid_request(validator):
             raise InvalidLTIRequestError('Invalid LTI Request')
         return True
-

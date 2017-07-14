@@ -17,7 +17,6 @@ from lti.utils import InvalidLTIRequestError
 
 from zope import component
 from zope import interface
-from zope.component import subscribers
 
 from pyramid import httpexceptions as hexc
 
@@ -32,8 +31,6 @@ from nti.appserver.policies.interfaces import ISitePolicyUserEventListener
 from nti.ims.lti.config import ToolConfigFactory
 
 from nti.ims.lti.interfaces import ITool
-
-from nti.ims.lti.interfaces import IToolConfigBuilder, IToolConfig
 
 
 @interface.implementer(ITool)
@@ -67,9 +64,6 @@ class LaunchToolConfigFactory(ToolConfigFactory):
 
     def __call__(self):
         config = super(LaunchToolConfigFactory, self).__call__()
-        # Add consumer specific config details
-        for builder in subscribers((config,), IToolConfigBuilder):
-            config = builder.configure(config)
         return config
 
 
