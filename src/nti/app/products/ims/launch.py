@@ -28,8 +28,6 @@ from nti.appserver.interfaces import IApplicationSettings
 
 from nti.appserver.policies.interfaces import ISitePolicyUserEventListener
 
-from nti.ims.lti.config import ToolConfigFactory
-
 from nti.ims.lti.interfaces import ITool
 
 
@@ -52,26 +50,6 @@ class LaunchTool(object):
     @property
     def description(self):
         return self.title
-
-
-class LaunchToolConfigFactory(ToolConfigFactory):
-    """
-    A launch tool config that makes sure canvas requests all user
-    data and that the request from canvas is oauth compliant
-    """
-
-    def __init__(self, tool):
-        super(LaunchToolConfigFactory, self).__init__(tool)
-
-    def __call__(self):
-        config = super(LaunchToolConfigFactory, self).__call__()
-        # TODO: Should probably pull these out into subscribers
-        canvas_ext = {
-            'oauth_compliant': 'true',
-            'privacy_level': 'Public'
-        }
-        config.set_ext_params('canvas.instructure.com', canvas_ext)
-        return config
 
 
 def _web_root():
