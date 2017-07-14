@@ -62,6 +62,7 @@ class FakeSiteBuilder(object):
 class FakeLMS(object):
     title = u'My fake site'
 
+
 @interface.implementer(IIMSInfoValidator)
 class FakeLMSBuilder(object):
     def __init__(self, validator):
