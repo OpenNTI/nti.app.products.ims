@@ -3,18 +3,21 @@
 
 from __future__ import print_function, absolute_import, division
 
-import nti
-from hamcrest import assert_that, is_
-from lti import ToolConsumer
-from nti.app.products.ims.interfaces import IIMSInfoValidator, ILTIRequest
-from zope.component import subscribers
-
 __docformat__ = "restructuredtext en"
 
+from hamcrest import assert_that, is_
 
-import unittest
+from zope.component import subscribers
 
 from zope import interface
+
+from lti import ToolConsumer
+
+from nti.app.products.ims.interfaces import ILMSInfoValidator
+from nti.app.products.ims.interfaces import ILTIRequest
+
+import nti.testing.base
+
 
 REGISTER_ADAPTER_STRING = u"""
 <configure	xmlns="http://namespaces.zope.org/zope"
@@ -48,7 +51,7 @@ class FakeSite(object):
     title = u'My fake site'
 
 
-@interface.implementer(IIMSInfoValidator)
+@interface.implementer(ILMSInfoValidator)
 class FakeSiteBuilder(object):
 
     def __init__(self, validator):
@@ -63,7 +66,7 @@ class FakeLMS(object):
     title = u'My fake site'
 
 
-@interface.implementer(IIMSInfoValidator)
+@interface.implementer(ILMSInfoValidator)
 class FakeLMSBuilder(object):
     def __init__(self, validator):
         pass
@@ -92,7 +95,7 @@ class TestValidation(nti.testing.base.ConfiguringTestBase):
         request = ILTIRequest(request)
 
         from IPython.core.debugger import Tracer;Tracer()()
-        subs = subscribers((request,), IIMSInfoValidator)
+        subs = subscribers((request,), ILMSInfoValidator)
 
         assert_that(len(subs), is_(2))
 
