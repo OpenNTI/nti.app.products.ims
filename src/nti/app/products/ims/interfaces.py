@@ -55,15 +55,25 @@ class IOAuthNonceRecorder(interface.Interface):
         """
 
 
-class IIMSInfoValidator(interface.Interface):
+class ILMSInfoValidator(interface.Interface):
     """
-    Given a launch request, returns if the relevant info is present and well formed for a specific source
-    Can be used to validate site and/or LMS info
+    Given a launch request, returns the site name for a specific LMS
     """
 
     def __call__(request):
         """
-        :return: tuple (provisioning adapter name, required boolean) None if unfound
+        :return: site name and lms name, or none
+        """
+
+
+class ISiteInfoValidator(interface.Interface):
+    """
+    Given a launch request, returns if the relevant info is present and well formed for a specific site
+    """
+
+    def __call__(request, name):
+        """
+        :return: Boolean if info is present for provisioning
         """
 
 
