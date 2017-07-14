@@ -29,6 +29,10 @@
 			 provides=".interfaces.ILTIRequest"
 			 for="pyramid.interfaces.IRequest" />
 
+	<subscriber factory=".canvas.OAuthComplianceFieldConfigBuilder"
+	            provides="nti.ims.lti.interfaces.IToolConfigBuilder"
+	            for="nti.ims.lti.interfaces.ITool" />
+
 	<!-- Pyramid traversal -->
 	<adapter name="IMS"
 			 factory=".views.IMSPathAdapter"
@@ -54,7 +58,7 @@
 			 for=".views.LTIPathAdapter pyramid.interfaces.IRequest" />
 
 	<!-- Register our tool, config factory, and provider for a basic Launch Tool -->
-	<adapter factory=".launch.LaunchToolConfigFactory"
+	<adapter factory="nti.ims.lti.config.ToolConfigFactory"
 			 provides="nti.ims.lti.interfaces.IToolConfigFactory"
 			 for=".launch.LaunchTool" />
 

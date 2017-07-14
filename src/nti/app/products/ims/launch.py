@@ -28,8 +28,6 @@ from nti.appserver.interfaces import IApplicationSettings
 
 from nti.appserver.policies.interfaces import ISitePolicyUserEventListener
 
-from nti.ims.lti.config import ToolConfigFactory
-
 from nti.ims.lti.interfaces import ITool
 
 
@@ -52,19 +50,6 @@ class LaunchTool(object):
     @property
     def description(self):
         return self.title
-
-
-class LaunchToolConfigFactory(ToolConfigFactory):
-    """
-    A launch tool config
-    """
-
-    def __init__(self, tool):
-        super(LaunchToolConfigFactory, self).__init__(tool)
-
-    def __call__(self):
-        config = super(LaunchToolConfigFactory, self).__call__()
-        return config
 
 
 def _web_root():
