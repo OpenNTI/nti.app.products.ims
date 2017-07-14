@@ -13,7 +13,6 @@ from zope import interface
 
 from nti.ims.lti.interfaces import IToolConfigBuilder
 
-
 CONSUMER_EXT_KEY = 'canvas.instructure.com'
 
 
@@ -24,7 +23,6 @@ class OAuthComplianceFieldConfigBuilder(object):
         pass
 
     def configure(self, config):
-
         canvas_ext = {
             'oauth_compliant': 'true',
             'privacy_level': 'Public'

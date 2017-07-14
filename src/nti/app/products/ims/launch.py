@@ -18,8 +18,6 @@ from lti.utils import InvalidLTIRequestError
 from zope import component
 from zope import interface
 
-from pyramid import httpexceptions as hexc
-
 from nti.app.products.ims.interfaces import IToolProvider
 
 from nti.app.products.ims.provider import ToolProvider
@@ -58,7 +56,7 @@ def _web_root():
     return web_root
 
 
-def _provider_factory(tool, request):
+def _provider_factory(unused_tool, request):
     return LaunchProvider.from_unpacked_request(None,
                                                 request.params,
                                                 request.url,

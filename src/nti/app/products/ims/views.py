@@ -118,7 +118,6 @@ class ExecuteProviderView(AbstractView):
             conf.launch_url = request.relative_url(render_link(launch_link))
         if not conf.secure_launch_url:
             conf.secure_launch_url = conf.launch_url
-
         # TODO: seems like there should be a hook somewhere that we
         # can use to just return the config here and let the normal
         # rendering machinary call to_xml and set a content type?
@@ -151,6 +150,5 @@ class LaunchProviderView(AbstractView):
         # the lti consumer that launched us, the tool, and in our
         # case the site.  That implies some level of hook here
         # either via adapter or event/subscriber
-
         redirect_url = provider.tool_url
         return hexc.HTTPSeeOther(location=redirect_url)
