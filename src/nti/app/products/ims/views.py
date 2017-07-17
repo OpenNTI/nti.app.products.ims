@@ -151,7 +151,7 @@ class LaunchProviderView(AbstractView):
 
         try:
             ISessionProvider(lti_request).provision()
-        except ValueError:
+        except InvalidLTIRequestError:
             logger.exception('Invalid LTI Request')
             return hexc.HTTPBadRequest('Unknown tool consumer')
 
