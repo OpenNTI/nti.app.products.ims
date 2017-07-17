@@ -14,6 +14,8 @@ from lti.utils import InvalidLTIRequestError
 from zope import component
 from zope import interface
 
+from zope.component import getUtility
+
 from zope.location.interfaces import IContained
 from zope.location.interfaces import LocationError
 
@@ -34,6 +36,7 @@ from nti.app.products.ims import SIS
 from nti.app.products.ims import TOOLS
 
 from nti.app.products.ims.interfaces import ILTIRequest
+from nti.app.products.ims.interfaces import ISessionProviderFinder
 from nti.app.products.ims.interfaces import IToolProvider
 
 from nti.dataserver.interfaces import ILinkExternalHrefOnly
@@ -145,12 +148,15 @@ class LaunchProviderView(AbstractView):
         except InvalidLTIRequestError:
             logger.exception('Invalid LTI Request')
             return hexc.HTTPBadRequest()
-        # TODO: Here, or in the base IToolProvider:respond we
-        # need to provision any local accounts and setup sessions.
-        # The exact mechanism of how this happens a function of
-        # the lti consumer that launched us, the tool, and in our
-        # case the site.  That implies some level of hook here
-        # either via adapter or event/subscriber
+
+        session = getUtility(ISessionProviderFinder).find(lti_request)
+
+        if not session:
+            logger.exception('Unknown tool consumer')
+            return hexc.HTTPBadRequest('Unknown tool consumer')
+
+        session.provision(lti_request)
 
         redirect_url = provider.tool_url
         return hexc.HTTPSeeOther(location=redirect_url)
+

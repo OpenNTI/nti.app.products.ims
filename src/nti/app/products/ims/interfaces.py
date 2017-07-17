@@ -55,12 +55,26 @@ class IOAuthNonceRecorder(interface.Interface):
         """
 
 
-class ILaunchRequestValidator(interface.Interface):
+class ISessionProvider(interface.Interface):
     """
-    Given a tool consumer instance, validates the fields for a given consumer
+    Implemented in specific site packages to provision a session
     """
 
-    def validate(tool_consumer):
+    def provision(launch_request):
         """
-        Validation method for a launch request
+        Provision a session for the Tool Consumer through the appropriate site
+        """
+
+
+class IToolConsumerSpecialParams(interface.Interface):
+    """
+    To be implemented by Tool Consumers with abnormal LTI Requests
+    """
+
+
+class ISessionProviderFinder(interface.Interface):
+
+    def find(launch_request):
+        """
+        Finds a session provider for an LTI Request
         """
