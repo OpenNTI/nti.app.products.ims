@@ -20,6 +20,7 @@ SITE_ADAPTER_FIELDS = [
     'consumer_key'
 ]
 
+
 class SessionProviderFinder(object):
 
     def find(self, request):
