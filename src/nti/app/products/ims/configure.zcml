@@ -22,7 +22,10 @@
 
 	<!-- Utilities -->
 	<utility factory=".oauth.RedisNonceRecorder"
-			 provides=".interfaces.IOAuthNonceRecorder"/>
+			 provides=".interfaces.IOAuthNonceRecorder" />
+
+	<utility factory=".finder.SessionProviderFinder"
+	         provides=".interfaces.ISessionProviderFinder" />
 
 	<!-- Adapters -->
 	<adapter factory=".pyramid.PyramidLTIRequest"
