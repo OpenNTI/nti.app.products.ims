@@ -41,5 +41,5 @@ class SessionProviderFinder(object):
         if not self.adapter:
             raise InvalidLTIRequestError('No adapter was found for this consumer tool')
 
-    def provision(self):
-        self.adapter.provision()
+    def provision(self, request=None):
+        self.adapter.provision(self.request)
