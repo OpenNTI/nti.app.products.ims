@@ -66,12 +66,6 @@ class ISessionProvider(interface.Interface):
         """
 
 
-class IToolConsumerSpecialParams(interface.Interface):
-    """
-    To be implemented by Tool Consumers with abnormal LTI Requests
-    """
-
-
 class ISessionProviderFinder(interface.Interface):
 
     def find(launch_request):
