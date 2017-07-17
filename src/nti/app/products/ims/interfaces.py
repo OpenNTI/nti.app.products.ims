@@ -55,29 +55,12 @@ class IOAuthNonceRecorder(interface.Interface):
         """
 
 
-class ILMSInfoValidator(interface.Interface):
+class ILaunchRequestValidator(interface.Interface):
     """
-    Given a launch request, returns the site name for a specific LMS
+    Given a tool consumer instance, validates the fields for a given consumer
     """
 
-    def __call__(request):
+    def validate(tool_consumer):
         """
-        :return: site name and lms name, or none
+        Validation method for a launch request
         """
-
-
-class ISiteInfoValidator(interface.Interface):
-    """
-    Given a launch request, returns if the relevant info is present and well formed for a specific site
-    """
-
-    def __call__(request, name):
-        """
-        :return: Boolean if info is present for provisioning
-        """
-
-
-class IIMSSessionProvision(interface.Interface):
-    """
-    Provisions a session for a request
-    """

@@ -7,14 +7,16 @@ __docformat__ = "restructuredtext en"
 
 from hamcrest import assert_that, is_
 
+from pyramid.testing import DummyRequest
+
 from zope.component import subscribers
 
 from zope import interface
 
-from lti import ToolConsumer
-
-from nti.app.products.ims.interfaces import ILMSInfoValidator
+from nti.app.products.ims.interfaces import ILaunchRequestValidator
 from nti.app.products.ims.interfaces import ILTIRequest
+
+from nti.app.products.ims.tests import SharedConfiguringTestLayer
 
 import nti.testing.base
 
@@ -34,11 +36,11 @@ REGISTER_ADAPTER_STRING = u"""
 	<configure>
 		<subscriber factory=".tests.test_provisioning.FakeSiteBuilder"
 		            for=".tests.test_provisioning.FakeSite"
-		            provides=".interfaces.IIMSInfoValidator" />
+		            provides=".interfaces.ILaunchRequestValidator" />
 		            
 		<subscriber factory=".tests.test_provisioning.FakeLMSBuilder"
 		            for=".tests.test_provisioning.FakeLMS"
-		            provides=".interfaces.IIMSInfoValidator" />
+		            provides=".interfaces.ILaunchRequestValidator" />
 		            
 	</configure>
 </configure>
@@ -51,7 +53,7 @@ class FakeSite(object):
     title = u'My fake site'
 
 
-@interface.implementer(ILMSInfoValidator)
+@interface.implementer(ILaunchRequestValidator)
 class FakeSiteBuilder(object):
 
     def __init__(self, validator):
@@ -66,41 +68,31 @@ class FakeLMS(object):
     title = u'My fake site'
 
 
-@interface.implementer(ILMSInfoValidator)
+@interface.implementer(ILaunchRequestValidator)
 class FakeLMSBuilder(object):
     def __init__(self, validator):
         pass
 
-    def __call__(self, request):
+    def validate(self, launch_request):
         return True
-
-
-def _make_launch_request(key, secret):
-    tc = ToolConsumer(key, secret, params={
-        'lti_message_type': 'basic-lti-launch-request',
-        'lti_version': 'LTI-1.0',
-        'resource_link_id': 'linkid',
-        'launch_url': 'http://localhost/dataserver2/IMS/LTI/TOOLS/launch',
-    })
-    return tc, tc.generate_launch_request()
 
 
 class TestValidation(nti.testing.base.ConfiguringTestBase):
 
-    def test_registered_adapter(self):
+    layer = SharedConfiguringTestLayer
+
+    def test_registered_subscriber(self):
+
+        url = 'http://example.com'
+        req = DummyRequest(url=url, params={'foo': 'bar'})
+
+        lti_request = ILTIRequest(req)
 
         self.configure_string(REGISTER_ADAPTER_STRING)
-        _, request = _make_launch_request('does not', 'exist')
 
-        request = ILTIRequest(request)
-
-        from IPython.core.debugger import Tracer;Tracer()()
-        subs = subscribers((request,), ILMSInfoValidator)
+        subs = subscribers((lti_request,), ILaunchRequestValidator)
 
         assert_that(len(subs), is_(2))
 
         for subscriber in subs:
             assert_that(subscriber(), is_(True))
-
-
-
