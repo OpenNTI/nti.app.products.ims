@@ -24,9 +24,6 @@
 	<utility factory=".oauth.RedisNonceRecorder"
 			 provides=".interfaces.IOAuthNonceRecorder" />
 
-	<utility factory=".finder.SessionProviderFinder"
-	         provides=".interfaces.ISessionProviderFinder" />
-
 	<!-- Adapters -->
 	<adapter factory=".pyramid.PyramidLTIRequest"
 			 provides=".interfaces.ILTIRequest"
@@ -72,5 +69,9 @@
 	<adapter factory=".launch._provider_factory"
 			 provides=".interfaces.IToolProvider"
 			 for=".launch.LaunchTool .interfaces.ILTIRequest" />
+
+	<adapter factory=".finder.SessionProviderFinder"
+	         provides=".interfaces.ISessionProvider"
+	         for=".interfaces.ILTIRequest"/>
 
 </configure>

@@ -60,15 +60,12 @@ class ISessionProvider(interface.Interface):
     Implemented in specific site packages to provision a session
     """
 
-    def provision(launch_request):
+    def __init__(launch_request):
+        """
+        Finds an appropriate adapter upon init or throws error
+        """
+
+    def provision():
         """
         Provision a session for the Tool Consumer through the appropriate site
-        """
-
-
-class ISessionProviderFinder(interface.Interface):
-
-    def find(launch_request):
-        """
-        Finds a session provider for an LTI Request
         """
