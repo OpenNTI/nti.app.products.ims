@@ -36,7 +36,7 @@ from nti.app.products.ims import SIS
 from nti.app.products.ims import TOOLS
 
 from nti.app.products.ims.interfaces import ILTIRequest
-from nti.app.products.ims.interfaces import ISessionProviderFinder
+from nti.app.products.ims.interfaces import ISessionProvider
 from nti.app.products.ims.interfaces import IToolProvider
 
 from nti.dataserver.interfaces import ILinkExternalHrefOnly
@@ -149,13 +149,11 @@ class LaunchProviderView(AbstractView):
             logger.exception('Invalid LTI Request')
             return hexc.HTTPBadRequest()
 
-        session = getUtility(ISessionProviderFinder).find(lti_request)
-
-        if not session:
-            logger.exception('Unknown tool consumer')
+        try:
+            ISessionProvider(lti_request).provision()
+        except ValueError:
+            logger.exception('Invalid LTI Request')
             return hexc.HTTPBadRequest('Unknown tool consumer')
-
-        session.provision(lti_request)
 
         redirect_url = provider.tool_url
         return hexc.HTTPSeeOther(location=redirect_url)

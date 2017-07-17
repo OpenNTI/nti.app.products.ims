@@ -7,27 +7,39 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
+from lti import ToolProvider
+from lti import InvalidLTIRequestError
+
 from zope.component import queryAdapter
 
 from nti.app.products.ims.interfaces import ISessionProvider
 
-SITE_ADAPTER_FIELDS = [
+LAUNCH_PARAM_FIELDS = [
     'tool_consumer_instance_guid',
-    'tool_consumer_instance_name',
-    'tool_consumer_instance_description',
     'tool_consumer_instance_url',
-    'tool_consumer_family_code',
-    'consumer_key'
+    'tool_consumer_instance_name',
+    'consumer_key',
+    'tool_consumer_family_code'
 ]
 
 
 class SessionProviderFinder(object):
 
-    def find(self, request):
+    def __init__(self, request):
+
+        self.request = ToolProvider.from_unpacked_request(None,
+                                                          request.url,
+                                                          request.params,
+                                                          request.headers)
 
         # Check the suspected locations
-        for field in SITE_ADAPTER_FIELDS:
-            adapter = queryAdapter(request, ISessionProvider, name=field)
+        for field in LAUNCH_PARAM_FIELDS:
+            adapter_name = request[field]
+            adapter = queryAdapter(request, ISessionProvider, name=adapter_name)
             if adapter:
-                return adapter
-        return None
+                self.adapter = adapter
+        if not self.adapter:
+            raise InvalidLTIRequestError('No adapter was found for this consumer tool')
+
+    def provision(self):
+        self.adapter.provision()
