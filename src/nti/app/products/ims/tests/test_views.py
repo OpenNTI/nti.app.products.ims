@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function, absolute_import, division
+
+from zope.component import getGlobalSiteManager
+
 __docformat__ = "restructuredtext en"
 
 # disable: accessing protected members, too many methods
@@ -15,6 +18,8 @@ from hamcrest import has_entries
 
 from zope import component
 
+from zope import interface
+
 from lti.tool_config import ToolConfig
 
 from lti.tool_consumer import ToolConsumer
@@ -24,6 +29,8 @@ from nti.externalization.interfaces import StandardExternalFields
 from nti.ims.lti.interfaces import IOAuthConsumers
 
 from nti.ims.lti.oauth import OAuthConsumer
+
+from nti.app.products.ims.interfaces import ISessionProvider, ILTIRequest
 
 from nti.app.testing.application_webtest import ApplicationLayerTest
 
@@ -35,10 +42,22 @@ ITEMS = StandardExternalFields.ITEMS
 ITEM_COUNT = StandardExternalFields.ITEM_COUNT
 
 
+@interface.implementer(ISessionProvider)
+class FakeSessionProvider(object):
+
+    def provision(self, launch_request):
+        return True
+
+
 class TestToolViews(ApplicationLayerTest):
     """
     We use the concrete launch tool as a test case for our general views
     """
+
+    def __init__(self):
+        super(TestToolViews, self).__init__()
+        gsm = getGlobalSiteManager()
+        gsm.registerAdapter(FakeSessionProvider, (ISessionProvider,), ILTIRequest, 'test')
 
     default_origin = 'http://janux.ou.edu'
 
@@ -70,6 +89,7 @@ class TestToolViews(ApplicationLayerTest):
             'lti_message_type': 'basic-lti-launch-request',
             'lti_version': 'LTI-1.0',
             'resource_link_id': 'linkid',
+            'tool_consumer_instance_guid': 'test',
             'launch_url': 'http://localhost/dataserver2/IMS/LTI/TOOLS/launch',
         })
         return tc, tc.generate_launch_request()
