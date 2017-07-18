@@ -50,7 +50,7 @@ class FakeSessionProvider(object):
     def __init__(self, launch_request):
         pass
 
-    def provision(self, launch_request):
+    def establish_session(self, launch_request):
         return True
 
 
