@@ -65,7 +65,7 @@ class ISessionProvider(interface.Interface):
         Finds an appropriate adapter upon init or throws error
         """
 
-    def provision(launch_request):
+    def establish_session(launch_request, success='/', failure='/'):
         """
         Provision a session for the Tool Consumer through the appropriate site
         """
