@@ -3,8 +3,6 @@
 
 from __future__ import print_function, absolute_import, division
 
-
-
 __docformat__ = "restructuredtext en"
 
 # disable: accessing protected members, too many methods
@@ -105,7 +103,7 @@ class TestToolViews(ApplicationLayerTest):
     def _setup_mock(self, adapter_name=TEST_ADAPTER_NAME):
         with mock_dataserver.mock_db_trans(self.ds):
             self.consumer = self._register_consumer(u'foonextthoughtcom',
-                                               u'supersecret')
+                                                    u'supersecret')
             self.gsm = getGlobalSiteManager()
             self.gsm.registerAdapter(FakeSessionProvider, name=adapter_name)
 
