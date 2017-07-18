@@ -17,8 +17,8 @@ LAUNCH_PARAM_FIELDS = [
     'tool_consumer_instance_guid',
     'tool_consumer_instance_url',
     'tool_consumer_instance_name',
-    'consumer_key',
-    'tool_consumer_family_code'
+    'oauth_consumer_key',
+    'tool_consumer_info_product_family_code'
 ]
 
 
@@ -35,6 +35,7 @@ class SessionProviderFinder(object):
                 adapter = queryAdapter(request, ISessionProvider, name=adapter_name)
                 if adapter:
                     self.adapter = adapter
+                    break
             except KeyError:
                 logger.exception('No key in field %s', field)
         if not self.adapter:
