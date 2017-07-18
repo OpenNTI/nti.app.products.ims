@@ -11,7 +11,7 @@ from lti import InvalidLTIRequestError
 
 from zope.component import queryAdapter
 
-from nti.app.products.ims.interfaces import ILocalAccountProvision
+from nti.app.products.ims.interfaces import ILocalAccountLookup
 
 LAUNCH_PARAM_FIELDS = [
     'tool_consumer_instance_guid',
@@ -32,7 +32,7 @@ class LaunchProvisionFinder(object):
         for field in LAUNCH_PARAM_FIELDS:
             try:
                 adapter_name = request.params[field]
-                adapter = queryAdapter(request, ILocalAccountProvision, name=adapter_name)
+                adapter = queryAdapter(request, ILocalAccountLookup, name=adapter_name)
                 if adapter:
                     self.adapter = adapter
                     break

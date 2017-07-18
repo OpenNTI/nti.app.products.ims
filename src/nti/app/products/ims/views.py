@@ -35,7 +35,7 @@ from nti.app.products.ims import SIS
 from nti.app.products.ims import TOOLS
 
 from nti.app.products.ims.interfaces import ILTIRequest
-from nti.app.products.ims.interfaces import ILocalAccountProvision
+from nti.app.products.ims.interfaces import ILocalAccountLookup
 from nti.app.products.ims.interfaces import IToolProvider
 
 from nti.appserver.logon import _create_success_response
@@ -152,7 +152,7 @@ class LaunchProviderView(AbstractView):
 
         # Try to grab an account
         try:
-            user_id = ILocalAccountProvision(lti_request).get_user_id()
+            user_id = ILocalAccountLookup(lti_request).get_user_id()
         except InvalidLTIRequestError:
             logger.exception('Invalid LTI Request')
             return hexc.HTTPBadRequest('Unknown tool consumer')

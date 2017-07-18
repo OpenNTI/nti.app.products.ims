@@ -71,7 +71,7 @@
 			 for=".launch.LaunchTool .interfaces.ILTIRequest" />
 
 	<adapter factory=".finder.LaunchProvisionFinder"
-	         provides=".interfaces.ILocalAccountProvision"
+	         provides=".interfaces.ILocalAccountLookup"
 	         for=".interfaces.ILTIRequest"/>
 
 </configure>
