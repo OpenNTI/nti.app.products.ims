@@ -11,7 +11,7 @@ from lti import InvalidLTIRequestError
 
 from zope.component import queryAdapter
 
-from nti.app.products.ims.interfaces import ISessionProvider
+from nti.app.products.ims.interfaces import IContentProvision
 
 LAUNCH_PARAM_FIELDS = [
     'tool_consumer_instance_guid',
@@ -22,7 +22,7 @@ LAUNCH_PARAM_FIELDS = [
 ]
 
 
-class SessionProviderFinder(object):
+class ContentProvisioningFinder(object):
 
     def __init__(self, request):
 
@@ -32,7 +32,7 @@ class SessionProviderFinder(object):
         for field in LAUNCH_PARAM_FIELDS:
             try:
                 adapter_name = request.params[field]
-                adapter = queryAdapter(request, ISessionProvider, name=adapter_name)
+                adapter = queryAdapter(request, IContentProvision, name=adapter_name)
                 if adapter:
                     self.adapter = adapter
                     break

@@ -55,7 +55,7 @@ class IOAuthNonceRecorder(interface.Interface):
         """
 
 
-class ISessionProvider(interface.Interface):
+class IContentProvision(interface.Interface):
     """
     Implemented in specific site packages to provision a session
     """
