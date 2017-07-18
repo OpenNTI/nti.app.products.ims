@@ -3,6 +3,10 @@
 
 from __future__ import print_function, absolute_import, division
 
+from nti.app.products.ou.utils import save_attributes
+
+from nti.dataserver.users import User
+
 __docformat__ = "restructuredtext en"
 
 # disable: accessing protected members, too many methods
@@ -50,8 +54,8 @@ class FakeSessionProvider(object):
     def __init__(self, launch_request):
         pass
 
-    def establish_session(self, launch_request):
-        return True
+    def get_user_id(self, launch_request):
+        return u'cald3307'
 
 
 class TestToolViews(ApplicationLayerTest):
@@ -100,12 +104,31 @@ class TestToolViews(ApplicationLayerTest):
         z.update(y)
         return z
 
+    def __create_user(self, username,
+                      password='temp001',
+                      soonerID=None,
+                      OU4x4=None,
+                      **kwargs):
+        ds = mock_dataserver.current_mock_ds
+        user = User.create_user(ds, username=username, password=password, **kwargs)
+        save_attributes(user, soonerID, OU4x4)
+        return user
+
     def _setup_mock(self, adapter_name=TEST_ADAPTER_NAME):
         with mock_dataserver.mock_db_trans(self.ds):
             self.consumer = self._register_consumer(u'foonextthoughtcom',
                                                     u'supersecret')
+
             self.gsm = getGlobalSiteManager()
             self.gsm.registerAdapter(FakeSessionProvider, name=adapter_name)
+
+    def _setup_user(self):
+        with mock_dataserver.mock_db_trans(self.ds):
+            self.__create_user(username=u'cald3307',
+                               soonerID=u'112133307',
+                               OU4x4=u'cald3307',
+                               external_value={'realname': u'Carlos Sanchez', 'email': u'foo@bar.com'},
+                               meta_data={'check_4x4': False})
 
     def _teardown_mock(self, adapter_name=TEST_ADAPTER_NAME):
         with mock_dataserver.mock_db_trans(self.ds):
@@ -118,6 +141,7 @@ class TestToolViews(ApplicationLayerTest):
         _, request = self._make_launch_request('does not', 'exist')
 
         self._setup_mock()
+        self._setup_user()
 
         # A launch request with bad credentials 400s
         self.testapp.post(request.url,
@@ -127,8 +151,9 @@ class TestToolViews(ApplicationLayerTest):
 
         _, request = self._make_launch_request(self.consumer.key, self.consumer.secret,
                                                {'tool_consumer_instance_guid': TEST_ADAPTER_NAME})
+
         result = self.testapp.post(request.url,
-                                   headers={}, 
+                                   headers={},
                                    params=request.body, status=303)
         assert_that(result.location, ends_with('/NextThoughtWebApp/'))
 
@@ -146,6 +171,7 @@ class TestToolViews(ApplicationLayerTest):
     def test_provisioning_adapters(self):
 
         self._setup_mock()
+        self._setup_user()
 
         # A launch request with the tool_instance_guid we don't have
         self._test_provisioning_result(400)

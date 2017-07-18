@@ -159,5 +159,5 @@ class LaunchProviderView(AbstractView):
 
         redirect_url = provider.tool_url
 
-        return _create_success_response(lti_request, user_id, redirect_url)
+        return _create_success_response(self.request, user_id, redirect_url)
 

@@ -41,5 +41,5 @@ class LaunchProvisionFinder(object):
         if not self.adapter:
             raise InvalidLTIRequestError('No adapter was found for this consumer tool')
 
-    def establish_session(self, request=None):
-        self.adapter.get_user_id(request)
+    def get_user_id(self, request=None):
+        return self.adapter.get_user_id(request)
