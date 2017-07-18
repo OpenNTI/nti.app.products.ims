@@ -11,7 +11,7 @@ from lti import InvalidLTIRequestError
 
 from zope.component import queryAdapter
 
-from nti.app.products.ims.interfaces import ILaunchProvision
+from nti.app.products.ims.interfaces import ILocalAccountProvision
 
 LAUNCH_PARAM_FIELDS = [
     'tool_consumer_instance_guid',
@@ -32,7 +32,7 @@ class LaunchProvisionFinder(object):
         for field in LAUNCH_PARAM_FIELDS:
             try:
                 adapter_name = request.params[field]
-                adapter = queryAdapter(request, ILaunchProvision, name=adapter_name)
+                adapter = queryAdapter(request, ILocalAccountProvision, name=adapter_name)
                 if adapter:
                     self.adapter = adapter
                     break
@@ -42,4 +42,4 @@ class LaunchProvisionFinder(object):
             raise InvalidLTIRequestError('No adapter was found for this consumer tool')
 
     def establish_session(self, request=None):
-        self.adapter.establish_session(request)
+        self.adapter.get_user_id(request)

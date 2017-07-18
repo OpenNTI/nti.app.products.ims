@@ -5,6 +5,7 @@
 """
 
 from __future__ import print_function, absolute_import, division
+
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
@@ -34,8 +35,10 @@ from nti.app.products.ims import SIS
 from nti.app.products.ims import TOOLS
 
 from nti.app.products.ims.interfaces import ILTIRequest
-from nti.app.products.ims.interfaces import ILaunchProvision
+from nti.app.products.ims.interfaces import ILocalAccountProvision
 from nti.app.products.ims.interfaces import IToolProvider
+
+from nti.appserver.logon import _create_success_response
 
 from nti.dataserver.interfaces import ILinkExternalHrefOnly
 
@@ -147,12 +150,14 @@ class LaunchProviderView(AbstractView):
             logger.exception('Invalid LTI Request')
             return hexc.HTTPBadRequest()
 
+        # Try to grab an account
         try:
-            ILaunchProvision(lti_request).establish_session()
+            user_id = ILocalAccountProvision(lti_request).get_user_id()
         except InvalidLTIRequestError:
             logger.exception('Invalid LTI Request')
             return hexc.HTTPBadRequest('Unknown tool consumer')
 
         redirect_url = provider.tool_url
-        return hexc.HTTPSeeOther(location=redirect_url)
+
+        return _create_success_response(lti_request, user_id, redirect_url)
 

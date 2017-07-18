@@ -55,7 +55,7 @@ class IOAuthNonceRecorder(interface.Interface):
         """
 
 
-class ILaunchProvision(interface.Interface):
+class ILocalAccountProvision(interface.Interface):
     """
     Looks back through the launch params to find an adapter for a specific
     site package and then provisions a session for content access
@@ -66,7 +66,7 @@ class ILaunchProvision(interface.Interface):
         Finds an appropriate adapter upon init or throws error
         """
 
-    def establish_session(launch_request, success='/', failure='/'):
+    def get_user_id(launch_request, success='/', failure='/'):
         """
         Provision a session for the Tool Consumer through the appropriate site
         """
