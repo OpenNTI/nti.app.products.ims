@@ -31,7 +31,7 @@ from nti.ims.lti.interfaces import IOAuthConsumers
 
 from nti.ims.lti.oauth import OAuthConsumer
 
-from nti.app.products.ims.interfaces import IContentProvision
+from nti.app.products.ims.interfaces import ILaunchProvision
 from nti.app.products.ims.interfaces import ILTIRequest
 
 from nti.app.testing.application_webtest import ApplicationLayerTest
@@ -45,7 +45,7 @@ ITEM_COUNT = StandardExternalFields.ITEM_COUNT
 TEST_ADAPTER_NAME = u'test'
 
 
-@interface.implementer(IContentProvision)
+@interface.implementer(ILaunchProvision)
 @component.adapter(ILTIRequest)
 class FakeSessionProvider(object):
 

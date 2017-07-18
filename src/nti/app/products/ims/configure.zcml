@@ -70,8 +70,8 @@
 			 provides=".interfaces.IToolProvider"
 			 for=".launch.LaunchTool .interfaces.ILTIRequest" />
 
-	<adapter factory=".finder.ContentProvisioningFinder"
-	         provides=".interfaces.IContentProvision"
+	<adapter factory=".finder.LaunchProvisionFinder"
+	         provides=".interfaces.ILaunchProvision"
 	         for=".interfaces.ILTIRequest"/>
 
 </configure>

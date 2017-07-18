@@ -55,9 +55,10 @@ class IOAuthNonceRecorder(interface.Interface):
         """
 
 
-class IContentProvision(interface.Interface):
+class ILaunchProvision(interface.Interface):
     """
-    Implemented in specific site packages to provision a session
+    Looks back through the launch params to find an adapter for a specific
+    site package and then provisions a session for content access
     """
 
     def __init__(launch_request):

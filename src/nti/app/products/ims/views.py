@@ -34,7 +34,7 @@ from nti.app.products.ims import SIS
 from nti.app.products.ims import TOOLS
 
 from nti.app.products.ims.interfaces import ILTIRequest
-from nti.app.products.ims.interfaces import IContentProvision
+from nti.app.products.ims.interfaces import ILaunchProvision
 from nti.app.products.ims.interfaces import IToolProvider
 
 from nti.dataserver.interfaces import ILinkExternalHrefOnly
@@ -148,7 +148,7 @@ class LaunchProviderView(AbstractView):
             return hexc.HTTPBadRequest()
 
         try:
-            IContentProvision(lti_request).establish_session()
+            ILaunchProvision(lti_request).establish_session()
         except InvalidLTIRequestError:
             logger.exception('Invalid LTI Request')
             return hexc.HTTPBadRequest('Unknown tool consumer')
