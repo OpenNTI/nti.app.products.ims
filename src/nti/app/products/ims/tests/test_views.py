@@ -3,7 +3,7 @@
 
 from __future__ import print_function, absolute_import, division
 
-from zope.component import getGlobalSiteManager
+
 
 __docformat__ = "restructuredtext en"
 
@@ -17,8 +17,9 @@ from hamcrest import assert_that
 from hamcrest import has_entries
 
 from zope import component
-
 from zope import interface
+
+from zope.component import getGlobalSiteManager
 
 from lti.tool_config import ToolConfig
 
@@ -43,7 +44,11 @@ ITEM_COUNT = StandardExternalFields.ITEM_COUNT
 
 
 @interface.implementer(ISessionProvider)
+@component.adapter(ILTIRequest)
 class FakeSessionProvider(object):
+
+    def __init__(self, launch_request):
+        pass
 
     def provision(self, launch_request):
         return True
@@ -53,11 +58,6 @@ class TestToolViews(ApplicationLayerTest):
     """
     We use the concrete launch tool as a test case for our general views
     """
-
-    def __init__(self):
-        super(TestToolViews, self).__init__()
-        gsm = getGlobalSiteManager()
-        gsm.registerAdapter(FakeSessionProvider, (ISessionProvider,), ILTIRequest, 'test')
 
     default_origin = 'http://janux.ou.edu'
 
@@ -89,8 +89,8 @@ class TestToolViews(ApplicationLayerTest):
             'lti_message_type': 'basic-lti-launch-request',
             'lti_version': 'LTI-1.0',
             'resource_link_id': 'linkid',
-            'tool_consumer_instance_guid': 'test',
             'launch_url': 'http://localhost/dataserver2/IMS/LTI/TOOLS/launch',
+            'tool_consumer_instance_guid': 'test',
         })
         return tc, tc.generate_launch_request()
 
@@ -107,9 +107,11 @@ class TestToolViews(ApplicationLayerTest):
         with mock_dataserver.mock_db_trans(self.ds):
             consumer = self._register_consumer(u'foonextthoughtcom',
                                                u'supersecret')
+            gsm = getGlobalSiteManager()
+            gsm.registerAdapter(FakeSessionProvider, name='test')
 
         _, request = self._make_launch_request(consumer.key, consumer.secret)
-        result = self.testapp.post(request.url, 
+        result = self.testapp.post(request.url,
                                    headers={}, 
                                    params=request.body, status=303)
         assert_that(result.location, ends_with('/NextThoughtWebApp/'))
@@ -117,3 +119,4 @@ class TestToolViews(ApplicationLayerTest):
         with mock_dataserver.mock_db_trans(self.ds):
             consumers = component.getUtility(IOAuthConsumers)
             del consumers[consumer.key]
+            gsm.unregisterAdapter(FakeSessionProvider, name='test')

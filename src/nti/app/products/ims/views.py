@@ -14,8 +14,6 @@ from lti.utils import InvalidLTIRequestError
 from zope import component
 from zope import interface
 
-from zope.component import getUtility
-
 from zope.location.interfaces import IContained
 from zope.location.interfaces import LocationError
 
