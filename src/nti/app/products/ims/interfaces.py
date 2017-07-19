@@ -55,18 +55,16 @@ class IOAuthNonceRecorder(interface.Interface):
         """
 
 
-class ILocalAccountLookup(interface.Interface):
+class ILTIUserFactory(interface.Interface):
     """
     Looks back through the launch params to find an adapter for a specific
-    site package and then returns a user_id
+    site package and can be used through user_for_request() to find a user object
+    or user_id for the related provisioner
     """
 
-    def __init__(launch_request):
+    def user_for_request(launch_request):
         """
-        Finds an appropriate adapter upon init or throws error
-        """
-
-    def get_user_id(launch_request):
-        """
-        Lookup a user_id
+        Parse the launch request for relevant parameters and lookup a user
+        If the specified user does not exist, create a user account for them
+        :return User object
         """

@@ -33,7 +33,7 @@ from nti.ims.lti.interfaces import IOAuthConsumers
 
 from nti.ims.lti.oauth import OAuthConsumer
 
-from nti.app.products.ims.interfaces import ILocalAccountLookup
+from nti.app.products.ims.interfaces import ILTIUserFactory
 from nti.app.products.ims.interfaces import ILTIRequest
 
 from nti.app.testing.application_webtest import ApplicationLayerTest
@@ -47,15 +47,16 @@ ITEM_COUNT = StandardExternalFields.ITEM_COUNT
 TEST_ADAPTER_NAME = u'test'
 
 
-@interface.implementer(ILocalAccountLookup)
+@interface.implementer(ILTIUserFactory)
 @component.adapter(ILTIRequest)
-class FakeSessionProvider(object):
+class FakeUserFactory(object):
 
     def __init__(self, launch_request):
         pass
 
-    def get_user_id(self, launch_request):
-        return u'cald3307'
+    def user_for_request(self, launch_request):
+        ds = mock_dataserver.current_mock_ds
+        return User.get_user(u'cald3307', ds)
 
 
 class TestToolViews(ApplicationLayerTest):
@@ -120,7 +121,7 @@ class TestToolViews(ApplicationLayerTest):
                                                     u'supersecret')
 
             self.gsm = getGlobalSiteManager()
-            self.gsm.registerAdapter(FakeSessionProvider, name=adapter_name)
+            self.gsm.registerAdapter(FakeUserFactory, name=adapter_name)
 
     def _setup_user(self):
         with mock_dataserver.mock_db_trans(self.ds):
@@ -134,7 +135,7 @@ class TestToolViews(ApplicationLayerTest):
         with mock_dataserver.mock_db_trans(self.ds):
             consumers = component.getUtility(IOAuthConsumers)
             del consumers[self.consumer.key]
-            self.gsm.unregisterAdapter(FakeSessionProvider, name=adapter_name)
+            self.gsm.unregisterAdapter(FakeUserFactory, name=adapter_name)
 
     @WithSharedApplicationMockDS(users=False, testapp=True)
     def test_launch(self):

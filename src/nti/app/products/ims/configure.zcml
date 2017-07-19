@@ -70,8 +70,8 @@
 			 provides=".interfaces.IToolProvider"
 			 for=".launch.LaunchTool .interfaces.ILTIRequest" />
 
-	<adapter factory=".finder.LaunchProvisionFinder"
-	         provides=".interfaces.ILocalAccountLookup"
+	<adapter factory=".finder.LTIUserFactoryFinder"
+	         provides=".interfaces.ILTIUserFactory"
 	         for=".interfaces.ILTIRequest"/>
 
 </configure>
