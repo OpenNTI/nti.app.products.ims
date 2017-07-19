@@ -13,12 +13,12 @@ from zope import component
 
 from lti.utils import InvalidLTIRequestError
 
-from lti.tool_provider import ToolProvider as _ToolProvider
+from lti.tool_provider import ToolProvider as LTIToolProvider
 
 from nti.app.products.ims.interfaces import IOAuthRequestValidator
 
 
-class ToolProvider(_ToolProvider):
+class ToolProvider(LTIToolProvider):
     """
     A pyramid based tool provider
     """

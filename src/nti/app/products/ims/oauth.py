@@ -114,7 +114,7 @@ class OAuthSignatureOnlyValidator(RequestValidator):
     def dummy_client(self):
         return _DUMMY_CLIENT_KEY
 
-    def get_client_secret(self, client_key, request):
+    def get_client_secret(self, client_key, unused_request):
         # Here client_key is something that has been returned as
         # valid according to validate_client_key or the default
         try:
@@ -143,5 +143,4 @@ class OAuthSignatureOnlyValidator(RequestValidator):
 
 @interface.implementer(IOAuthRequestValidator)
 class DevModeOAuthValidator(OAuthSignatureOnlyValidator):
-
     enforce_ssl = False
