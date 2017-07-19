@@ -53,3 +53,18 @@ class IOAuthNonceRecorder(interface.Interface):
         If a nonce is reused within the provided expires
         time a key error is raised
         """
+
+
+class ILTIUserFactory(interface.Interface):
+    """
+    Looks back through the launch params to find an adapter for a specific
+    site package and can be used through user_for_request() to find a user object
+    for the related provisioner
+    """
+
+    def user_for_request(launch_request):
+        """
+        Parse the launch request for relevant parameters and lookup a user
+        If the specified user does not exist, create a user account for them
+        :return User object
+        """

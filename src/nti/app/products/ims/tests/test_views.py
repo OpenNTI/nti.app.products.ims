@@ -2,6 +2,11 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function, absolute_import, division
+
+from nti.app.products.ou.utils import save_attributes
+
+from nti.dataserver.users import User
+
 __docformat__ = "restructuredtext en"
 
 # disable: accessing protected members, too many methods
@@ -14,6 +19,9 @@ from hamcrest import assert_that
 from hamcrest import has_entries
 
 from zope import component
+from zope import interface
+
+from zope.component import getGlobalSiteManager
 
 from lti.tool_config import ToolConfig
 
@@ -25,6 +33,9 @@ from nti.ims.lti.interfaces import IOAuthConsumers
 
 from nti.ims.lti.oauth import OAuthConsumer
 
+from nti.app.products.ims.interfaces import ILTIUserFactory
+from nti.app.products.ims.interfaces import ILTIRequest
+
 from nti.app.testing.application_webtest import ApplicationLayerTest
 
 from nti.app.testing.decorators import WithSharedApplicationMockDS
@@ -33,6 +44,19 @@ from nti.dataserver.tests import mock_dataserver
 
 ITEMS = StandardExternalFields.ITEMS
 ITEM_COUNT = StandardExternalFields.ITEM_COUNT
+TEST_ADAPTER_NAME = u'test'
+
+
+@interface.implementer(ILTIUserFactory)
+@component.adapter(ILTIRequest)
+class FakeUserFactory(object):
+
+    def __init__(self, launch_request):
+        pass
+
+    def user_for_request(self, launch_request):
+        ds = mock_dataserver.current_mock_ds
+        return User.get_user(u'cald3307', ds)
 
 
 class TestToolViews(ApplicationLayerTest):
@@ -65,18 +89,60 @@ class TestToolViews(ApplicationLayerTest):
                               has_entries('privacy_level', 'Public',
                                           'oauth_compliant', 'true')))
 
-    def _make_launch_request(self, key, secret):
-        tc = ToolConsumer(key, secret, params={
+    def _make_launch_request(self, key, secret, optional_params={}):
+        launch_params = {
             'lti_message_type': 'basic-lti-launch-request',
             'lti_version': 'LTI-1.0',
             'resource_link_id': 'linkid',
             'launch_url': 'http://localhost/dataserver2/IMS/LTI/TOOLS/launch',
-        })
+        }
+        launch_params = self._merge_dicts(optional_params, launch_params)
+        tc = ToolConsumer(key, secret, params=launch_params)
         return tc, tc.generate_launch_request()
+
+    def _merge_dicts(self, x, y):
+        z = x.copy()
+        z.update(y)
+        return z
+
+    def __create_user(self, username,
+                      password='temp001',
+                      soonerID=None,
+                      OU4x4=None,
+                      **kwargs):
+        ds = mock_dataserver.current_mock_ds
+        user = User.create_user(ds, username=username, password=password, **kwargs)
+        save_attributes(user, soonerID, OU4x4)
+        return user
+
+    def _setup_mock(self, adapter_name=TEST_ADAPTER_NAME):
+        with mock_dataserver.mock_db_trans(self.ds):
+            self.consumer = self._register_consumer(u'foonextthoughtcom',
+                                                    u'supersecret')
+
+            self.gsm = getGlobalSiteManager()
+            self.gsm.registerAdapter(FakeUserFactory, name=adapter_name)
+
+    def _setup_user(self):
+        with mock_dataserver.mock_db_trans(self.ds):
+            self.__create_user(username=u'cald3307',
+                               soonerID=u'112133307',
+                               OU4x4=u'cald3307',
+                               external_value={'realname': u'Carlos Sanchez', 'email': u'foo@bar.com'},
+                               meta_data={'check_4x4': False})
+
+    def _teardown_mock(self, adapter_name=TEST_ADAPTER_NAME):
+        with mock_dataserver.mock_db_trans(self.ds):
+            consumers = component.getUtility(IOAuthConsumers)
+            del consumers[self.consumer.key]
+            self.gsm.unregisterAdapter(FakeUserFactory, name=adapter_name)
 
     @WithSharedApplicationMockDS(users=False, testapp=True)
     def test_launch(self):
         _, request = self._make_launch_request('does not', 'exist')
+
+        self._setup_mock()
+        self._setup_user()
 
         # A launch request with bad credentials 400s
         self.testapp.post(request.url,
@@ -84,16 +150,63 @@ class TestToolViews(ApplicationLayerTest):
                           params=request.body,
                           status=400)
 
-        with mock_dataserver.mock_db_trans(self.ds):
-            consumer = self._register_consumer(u'foonextthoughtcom',
-                                               u'supersecret')
+        _, request = self._make_launch_request(self.consumer.key, self.consumer.secret,
+                                               {'tool_consumer_instance_guid': TEST_ADAPTER_NAME})
 
-        _, request = self._make_launch_request(consumer.key, consumer.secret)
-        result = self.testapp.post(request.url, 
-                                   headers={}, 
+        result = self.testapp.post(request.url,
+                                   headers={},
                                    params=request.body, status=303)
         assert_that(result.location, ends_with('/NextThoughtWebApp/'))
 
-        with mock_dataserver.mock_db_trans(self.ds):
-            consumers = component.getUtility(IOAuthConsumers)
-            del consumers[consumer.key]
+        self._teardown_mock()
+
+    def _test_provisioning_result(self, result, keys={}):
+        _, request = self._make_launch_request(self.consumer.key, self.consumer.secret, keys)
+
+        self.testapp.post(request.url,
+                          headers={},
+                          params=request.body,
+                          status=result)
+
+    @WithSharedApplicationMockDS(users=False, testapp=True)
+    def test_provisioning_adapters(self):
+
+        self._setup_mock()
+        self._setup_user()
+
+        # A launch request with the tool_instance_guid we don't have
+        self._test_provisioning_result(400)
+
+        # A lr with tool_consumer_instance_guid we don't have and tool_consumer_instance_url we do have
+        keys = {'tool_consumer_instance_guid': 'dne',
+                'tool_consumer_instance_url': TEST_ADAPTER_NAME}
+        self._test_provisioning_result(303, keys)
+
+        # Test tci name
+        keys = {'tool_consumer_instance_guid': 'dne',
+                'tool_consumer_instance_name': TEST_ADAPTER_NAME}
+        self._test_provisioning_result(303, keys)
+
+        # Test tc family code
+        keys = {'tool_consumer_instance_guid': 'dne',
+                'tool_consumer_info_product_family_code': TEST_ADAPTER_NAME}
+        self._test_provisioning_result(303, keys)
+
+        # Test everything being trash
+        keys = {'tool_consumer_instance_guid': 'dne',
+                'tool_consumer_instance_url': 'fake',
+                'tool_consumer_instance_name': 'creative value',
+                'oauth_consumer_key': 'nti',
+                'tool_consumer_info_product_family_code': 'last_test'}
+
+        self._test_provisioning_result(400, keys)
+
+        self._teardown_mock()
+
+        self._setup_mock(u'foonextthoughtcom')
+
+        # Test consumer key
+        keys = {'tool_consumer_instance_guid': 'dne'}
+        self._test_provisioning_result(303, keys)
+
+        self._teardown_mock(u'foonextthoughtcom')

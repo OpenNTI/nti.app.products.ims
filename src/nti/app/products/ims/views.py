@@ -5,6 +5,7 @@
 """
 
 from __future__ import print_function, absolute_import, division
+
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
@@ -34,7 +35,10 @@ from nti.app.products.ims import SIS
 from nti.app.products.ims import TOOLS
 
 from nti.app.products.ims.interfaces import ILTIRequest
+from nti.app.products.ims.interfaces import ILTIUserFactory
 from nti.app.products.ims.interfaces import IToolProvider
+
+from nti.appserver.logon import _create_success_response
 
 from nti.dataserver.interfaces import ILinkExternalHrefOnly
 
@@ -118,6 +122,7 @@ class ExecuteProviderView(AbstractView):
             conf.launch_url = request.relative_url(render_link(launch_link))
         if not conf.secure_launch_url:
             conf.secure_launch_url = conf.launch_url
+
         # TODO: seems like there should be a hook somewhere that we
         # can use to just return the config here and let the normal
         # rendering machinary call to_xml and set a content type?
@@ -144,11 +149,23 @@ class LaunchProviderView(AbstractView):
         except InvalidLTIRequestError:
             logger.exception('Invalid LTI Request')
             return hexc.HTTPBadRequest()
-        # TODO: Here, or in the base IToolProvider:respond we
-        # need to provision any local accounts and setup sessions.
-        # The exact mechanism of how this happens a function of
-        # the lti consumer that launched us, the tool, and in our
-        # case the site.  That implies some level of hook here
-        # either via adapter or event/subscriber
+
+        # Try to grab an account
+        try:
+            user = ILTIUserFactory(lti_request).user_for_request()
+        except InvalidLTIRequestError:
+            logger.exception('Invalid LTI Request')
+            return hexc.HTTPBadRequest('Unknown tool consumer')
+
+        try:
+            user_id = user.username
+        except LookupError:
+            logger.exception('Failed to retrieve user name from user object')
+
+            # Go ahead and let _create_success_response try lookup in case there is a cookie
+            user_id = None
+
         redirect_url = provider.tool_url
-        return hexc.HTTPSeeOther(location=redirect_url)
+
+        return _create_success_response(self.request, user_id, redirect_url)
+

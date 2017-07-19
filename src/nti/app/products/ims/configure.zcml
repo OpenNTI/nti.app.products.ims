@@ -22,7 +22,7 @@
 
 	<!-- Utilities -->
 	<utility factory=".oauth.RedisNonceRecorder"
-			 provides=".interfaces.IOAuthNonceRecorder"/>
+			 provides=".interfaces.IOAuthNonceRecorder" />
 
 	<!-- Adapters -->
 	<adapter factory=".pyramid.PyramidLTIRequest"
@@ -69,5 +69,9 @@
 	<adapter factory=".launch._provider_factory"
 			 provides=".interfaces.IToolProvider"
 			 for=".launch.LaunchTool .interfaces.ILTIRequest" />
+
+	<adapter factory=".finder.LTIUserFactoryFinder"
+	         provides=".interfaces.ILTIUserFactory"
+	         for=".interfaces.ILTIRequest"/>
 
 </configure>
