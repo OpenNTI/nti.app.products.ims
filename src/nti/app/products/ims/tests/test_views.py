@@ -2,10 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function, absolute_import, division
-
-from nti.app.products.ou.utils import save_attributes
-
 from nti.dataserver.users import User
+from nti.dataserver.users.interfaces import IUserProfile
 
 __docformat__ = "restructuredtext en"
 
@@ -33,8 +31,8 @@ from nti.ims.lti.interfaces import IOAuthConsumers
 
 from nti.ims.lti.oauth import OAuthConsumer
 
-from nti.app.products.ims.interfaces import ILTIUserFactory
 from nti.app.products.ims.interfaces import ILTIRequest
+from nti.app.products.ims.interfaces import ILTIUserFactory
 
 from nti.app.testing.application_webtest import ApplicationLayerTest
 
@@ -44,6 +42,7 @@ from nti.dataserver.tests import mock_dataserver
 
 ITEMS = StandardExternalFields.ITEMS
 ITEM_COUNT = StandardExternalFields.ITEM_COUNT
+
 TEST_ADAPTER_NAME = u'test'
 
 
@@ -54,7 +53,7 @@ class FakeUserFactory(object):
     def __init__(self, launch_request):
         pass
 
-    def user_for_request(self, launch_request):
+    def user_for_request(self, unused_launch_request):
         ds = mock_dataserver.current_mock_ds
         return User.get_user(u'cald3307', ds)
 
@@ -105,14 +104,30 @@ class TestToolViews(ApplicationLayerTest):
         z.update(y)
         return z
 
+    def __save_attributes(self, user, soonerID, OU4x4):
+        result = False
+        if     not getattr(user, 'soonerID', None) \
+            or not getattr(user, 'OU4x4', None):
+            # set attrs in user for legacy purposes
+            setattr(user, 'OU4x4', OU4x4)
+            setattr(user, 'soonerID', soonerID)
+            # set values in profile
+            ou_profile = IUserProfile(user, None)
+            if ou_profile is not None:
+                ou_profile.OU4x4 = OU4x4
+                ou_profile.soonerID = soonerID
+            result = True
+        return result
+
     def __create_user(self, username,
                       password='temp001',
                       soonerID=None,
                       OU4x4=None,
                       **kwargs):
         ds = mock_dataserver.current_mock_ds
-        user = User.create_user(ds, username=username, password=password, **kwargs)
-        save_attributes(user, soonerID, OU4x4)
+        user = User.create_user(ds, username=username,
+                                password=password, **kwargs)
+        self.__save_attributes(user, soonerID, OU4x4)
         return user
 
     def _setup_mock(self, adapter_name=TEST_ADAPTER_NAME):
@@ -128,7 +143,8 @@ class TestToolViews(ApplicationLayerTest):
             self.__create_user(username=u'cald3307',
                                soonerID=u'112133307',
                                OU4x4=u'cald3307',
-                               external_value={'realname': u'Carlos Sanchez', 'email': u'foo@bar.com'},
+                               external_value={'realname': u'Carlos Sanchez', 
+                                               'email': u'foo@bar.com'},
                                meta_data={'check_4x4': False})
 
     def _teardown_mock(self, adapter_name=TEST_ADAPTER_NAME):
@@ -161,7 +177,8 @@ class TestToolViews(ApplicationLayerTest):
         self._teardown_mock()
 
     def _test_provisioning_result(self, result, keys={}):
-        _, request = self._make_launch_request(self.consumer.key, self.consumer.secret, keys)
+        _, request = self._make_launch_request(
+            self.consumer.key, self.consumer.secret, keys)
 
         self.testapp.post(request.url,
                           headers={},
@@ -170,14 +187,14 @@ class TestToolViews(ApplicationLayerTest):
 
     @WithSharedApplicationMockDS(users=False, testapp=True)
     def test_provisioning_adapters(self):
-
         self._setup_mock()
         self._setup_user()
 
         # A launch request with the tool_instance_guid we don't have
         self._test_provisioning_result(400)
 
-        # A lr with tool_consumer_instance_guid we don't have and tool_consumer_instance_url we do have
+        # A lr with tool_consumer_instance_guid we don't have and
+        # tool_consumer_instance_url we do have
         keys = {'tool_consumer_instance_guid': 'dne',
                 'tool_consumer_instance_url': TEST_ADAPTER_NAME}
         self._test_provisioning_result(303, keys)
@@ -202,11 +219,8 @@ class TestToolViews(ApplicationLayerTest):
         self._test_provisioning_result(400, keys)
 
         self._teardown_mock()
-
         self._setup_mock(u'foonextthoughtcom')
-
         # Test consumer key
         keys = {'tool_consumer_instance_guid': 'dne'}
         self._test_provisioning_result(303, keys)
-
         self._teardown_mock(u'foonextthoughtcom')
