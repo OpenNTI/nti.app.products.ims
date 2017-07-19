@@ -11,6 +11,8 @@ from lti import InvalidLTIRequestError
 
 from zope.component import queryAdapter
 
+from nti.app.products.ims import MessageFactory as _
+
 from nti.app.products.ims.interfaces import ILTIUserFactory
 
 LAUNCH_PARAM_FIELDS = [
@@ -25,21 +27,22 @@ LAUNCH_PARAM_FIELDS = [
 class LTIUserFactoryFinder(object):
 
     def __init__(self, request):
-
         self.adapter = None
-
         # Check the suspected locations
         for field in LAUNCH_PARAM_FIELDS:
             try:
                 adapter_name = request.params[field]
-                adapter = queryAdapter(request, ILTIUserFactory, name=adapter_name)
+                adapter = queryAdapter(request, 
+                                       ILTIUserFactory, 
+                                       name=adapter_name)
                 if adapter:
                     self.adapter = adapter
                     break
             except KeyError:
                 logger.exception('No key in field %s', field)
         if not self.adapter:
-            raise InvalidLTIRequestError('No adapter was found for this consumer tool')
+            msg = _('No adapter was found for this consumer tool')
+            raise InvalidLTIRequestError(msg)
 
     def user_for_request(self, request=None):
         return self.adapter.user_for_request(request)

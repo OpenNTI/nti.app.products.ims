@@ -106,22 +106,22 @@ class TestValidator(unittest.TestCase):
         assert_that(self.validator.check_nonce(nonce))
 
     def test_validate_client_key(self):
-        assert_that(self.validator.validate_client_key('dev.nextthought.com', None), 
+        assert_that(self.validator.validate_client_key('dev.nextthought.com', None),
                     is_(False))
 
         self._register_consumer(u'dev.nextthought.com', u'blahblahblah')
 
-        assert_that(self.validator.validate_client_key('dev.nextthought.com', None), 
+        assert_that(self.validator.validate_client_key('dev.nextthought.com', None),
                     is_(True))
 
     def test_get_secret(self):
-        assert_that(self.validator.get_client_secret(_DUMMY_CLIENT_KEY, None), 
+        assert_that(self.validator.get_client_secret(_DUMMY_CLIENT_KEY, None),
                     is_(_DUMMY_CLIENT_SECRET))
 
         consumer = self._register_consumer(u'dev.nextthought.com',
                                            u'blahblahblah')
 
-        assert_that(self.validator.get_client_secret(consumer.key, None), 
+        assert_that(self.validator.get_client_secret(consumer.key, None),
                     is_(consumer.secret))
 
 
