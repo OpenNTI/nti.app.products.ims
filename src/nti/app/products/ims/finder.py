@@ -9,11 +9,11 @@ logger = __import__('logging').getLogger(__name__)
 
 from lti import InvalidLTIRequestError
 
-from zope.component import queryAdapter
-
 from nti.app.products.ims import MessageFactory as _
 
 from nti.app.products.ims.interfaces import ILTIUserFactory
+
+from nti.ims.lti.utils import LaunchRequestFilter
 
 LAUNCH_PARAM_FIELDS = [
     'tool_consumer_instance_guid',
@@ -27,19 +27,9 @@ LAUNCH_PARAM_FIELDS = [
 class LTIUserFactoryFinder(object):
 
     def __init__(self, request):
-        self.adapter = None
-        # Check the suspected locations
-        for field in LAUNCH_PARAM_FIELDS:
-            try:
-                adapter_name = request.params[field]
-                adapter = queryAdapter(request, 
-                                       ILTIUserFactory, 
-                                       name=adapter_name)
-                if adapter:
-                    self.adapter = adapter
-                    break
-            except KeyError:
-                logger.exception('No key in field %s', field)
+
+        self.adapter = LaunchRequestFilter.filter_for_adapter(request,
+                                                              ILTIUserFactory)
         if not self.adapter:
             msg = _('No adapter was found for this consumer tool')
             raise InvalidLTIRequestError(msg)
