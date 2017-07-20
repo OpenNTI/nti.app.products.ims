@@ -13,7 +13,7 @@ from nti.app.products.ims import MessageFactory as _
 
 from nti.app.products.ims.interfaces import ILTIUserFactory
 
-from nti.ims.lti.utils import LaunchRequestFilter
+from nti.ims.lti.utils import LTIRequestFilter
 
 LAUNCH_PARAM_FIELDS = [
     'tool_consumer_instance_guid',
@@ -28,8 +28,8 @@ class LTIUserFactoryFinder(object):
 
     def __init__(self, request):
 
-        self.adapter = LaunchRequestFilter.filter_for_adapter(request,
-                                                              ILTIUserFactory)
+        self.adapter = LTIRequestFilter.user_adapter_filter(request,
+                                                            ILTIUserFactory)
         if not self.adapter:
             msg = _('No adapter was found for this consumer tool')
             raise InvalidLTIRequestError(msg)
