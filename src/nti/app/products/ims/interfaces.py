@@ -68,3 +68,11 @@ class ILTIUserFactory(interface.Interface):
         If the specified user does not exist, create a user account for them
         :return User object
         """
+
+
+class ILaunchParamsMapping(interface.Interface):
+    """
+    A dict mapping of launch request fields to package specific values
+    e.g.
+    'EXAMPLE_PACKAGE_ID': 'tool_consumer_instance_guid'
+    """
