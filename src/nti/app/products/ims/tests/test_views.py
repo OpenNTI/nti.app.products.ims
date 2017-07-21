@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function, absolute_import, division
-from nti.dataserver.users import User
-from nti.dataserver.users.interfaces import IUserProfile
 
 __docformat__ = "restructuredtext en"
 
@@ -38,7 +36,14 @@ from nti.app.testing.application_webtest import ApplicationLayerTest
 
 from nti.app.testing.decorators import WithSharedApplicationMockDS
 
+from nti.dataserver.users import User
+
+from nti.dataserver.users.interfaces import IUserProfile
+
 from nti.dataserver.tests import mock_dataserver
+
+from nti.testing.matchers import verifiably_provides
+
 
 ITEMS = StandardExternalFields.ITEMS
 ITEM_COUNT = StandardExternalFields.ITEM_COUNT
@@ -51,9 +56,11 @@ TEST_ADAPTER_NAME = u'test'
 class FakeUserFactory(object):
 
     def __init__(self, launch_request):
-        pass
+        self.request = launch_request
 
-    def user_for_request(self, unused_launch_request):
+    def user_for_request(self):
+
+        assert_that(self.request, verifiably_provides(ILTIRequest))
         ds = mock_dataserver.current_mock_ds
         return User.get_user(u'cald3307', ds)
 

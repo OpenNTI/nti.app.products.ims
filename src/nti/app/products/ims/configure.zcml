@@ -70,7 +70,7 @@
 			 provides=".interfaces.IToolProvider"
 			 for=".launch.LaunchTool .interfaces.ILTIRequest" />
 
-	<adapter factory=".finder.LTIUserFactoryFinder"
+	<adapter factory=".adapters.LTIUserFactoryAdapter"
 	         provides=".interfaces.ILTIUserFactory"
 	         for=".interfaces.ILTIRequest"/>
 

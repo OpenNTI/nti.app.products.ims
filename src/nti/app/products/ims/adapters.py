@@ -7,10 +7,14 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
+from zope import component
+from zope import interface
+
 from lti import InvalidLTIRequestError
 
 from nti.app.products.ims import MessageFactory as _
 
+from nti.app.products.ims.interfaces import ILTIRequest
 from nti.app.products.ims.interfaces import ILTIUserFactory
 
 from nti.ims.lti.utils import LTIRequestFilter
@@ -24,9 +28,13 @@ LAUNCH_PARAM_FIELDS = [
 ]
 
 
-class LTIUserFactoryFinder(object):
+@interface.implementer(ILTIUserFactory)
+@component.adapter(ILTIRequest)
+class LTIUserFactoryAdapter(object):
 
     def __init__(self, request):
+
+        self.request = request
 
         self.adapter = LTIRequestFilter.user_adapter_filter(request,
                                                             ILTIUserFactory)
@@ -34,5 +42,5 @@ class LTIUserFactoryFinder(object):
             msg = _('No adapter was found for this consumer tool')
             raise InvalidLTIRequestError(msg)
 
-    def user_for_request(self, request=None):
-        return self.adapter.user_for_request(request)
+    def user_for_request(self):
+        return self.adapter.user_for_request()

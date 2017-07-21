@@ -62,7 +62,7 @@ class ILTIUserFactory(interface.Interface):
     for the related provisioner
     """
 
-    def user_for_request(launch_request):
+    def user_for_request():
         """
         Parse the launch request for relevant parameters and lookup a user
         If the specified user does not exist, create a user account for them
