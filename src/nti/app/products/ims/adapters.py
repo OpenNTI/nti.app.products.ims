@@ -17,8 +17,7 @@ from nti.app.products.ims import MessageFactory as _
 from nti.app.products.ims.interfaces import ILTIRequest
 from nti.app.products.ims.interfaces import ILTIUserFactory
 
-from nti.ims.lti import filter_request
-from nti.ims.lti import AdaptAccountingForConsumer
+from nti.ims.lti import adapt_accounting_for_consumer
 
 
 @interface.implementer(ILTIUserFactory)
@@ -29,9 +28,7 @@ class LTIUserFactoryAdapter(object):
 
         self.request = request
 
-        self.adapter = filter_request(AdaptAccountingForConsumer(request,
-                                                                 ILTIUserFactory),
-                                      False)
+        self.adapter = adapt_accounting_for_consumer(request, request, ILTIUserFactory)
 
         if not self.adapter:
             msg = _('No adapter was found for this consumer tool')

@@ -72,14 +72,7 @@ class ILTIUserFactory(interface.Interface):
 
 class ILaunchParamsMapping(interface.Interface):
     """
-    A dict mapping of launch request fields to package specific values
+    A mapping of launch request fields to package specific values
     e.g.
     'EXAMPLE_PACKAGE_ID': 'tool_consumer_instance_guid'
     """
-
-    map = Attribute(u'A map of consumer launch request mappings')
-
-    def set_consumer_map(self, consumer):
-        """
-        :param consumer: check self.map for a mapping for a specific consumer
-        """
