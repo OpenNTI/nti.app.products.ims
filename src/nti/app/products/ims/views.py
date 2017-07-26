@@ -34,9 +34,10 @@ from nti.app.products.ims import LTI
 from nti.app.products.ims import SIS
 from nti.app.products.ims import TOOLS
 
+from nti.app.products.ims.adapters import user_factory_for_request
+
 from nti.app.products.ims.interfaces import ILTIRequest
 from nti.app.products.ims.interfaces import IToolProvider
-from nti.app.products.ims.interfaces import ILTIUserFactory
 
 from nti.appserver.logon import _create_success_response
 
@@ -150,7 +151,8 @@ class LaunchProviderView(AbstractView):
             return hexc.HTTPBadRequest()
         # Try to grab an account
         try:
-            user = ILTIUserFactory(lti_request).user_for_request()
+            user_factory = user_factory_for_request(lti_request)
+            user = user_factory.user_for_request()
         except InvalidLTIRequestError:
             logger.exception('Invalid LTI Request')
             return hexc.HTTPBadRequest('Unknown tool consumer')

@@ -7,32 +7,25 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
-from zope import component
-from zope import interface
-
 from lti import InvalidLTIRequestError
 
 from nti.app.products.ims import MessageFactory as _
 
-from nti.app.products.ims.interfaces import ILTIRequest
 from nti.app.products.ims.interfaces import ILTIUserFactory
 
 from nti.ims.lti import adapt_accounting_for_consumer
 
 
-@interface.implementer(ILTIUserFactory)
-@component.adapter(ILTIRequest)
-class LTIUserFactoryAdapter(object):
+def user_factory_for_request(request):
+    """
+    Parses through the launch params of an lti request
+    to find a user factory for the appropriate site package
+    """
 
-    def __init__(self, request):
+    user_factory = adapt_accounting_for_consumer(request, request, ILTIUserFactory)
 
-        self.request = request
+    if user_factory is None:
+        msg = _('No user factory was found for this consumer tool')
+        raise InvalidLTIRequestError(msg)
 
-        self.adapter = adapt_accounting_for_consumer(request, request, ILTIUserFactory)
-
-        if not self.adapter:
-            msg = _('No adapter was found for this consumer tool')
-            raise InvalidLTIRequestError(msg)
-
-    def user_for_request(self):
-        return self.adapter.user_for_request()
+    return user_factory
