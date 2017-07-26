@@ -11,18 +11,16 @@ logger = __import__('logging').getLogger(__name__)
 
 from zope import interface
 
-from zope.interface import Attribute
-
 from nti.ims.lti.interfaces import ITool
 
 
 class ILTIRequest(interface.Interface):
 
-    url = Attribute(u'The url of the lti request')
+    url = interface.Attribute('The url of the lti request')
 
-    params = Attribute(u'The parameters of the lti request')
+    params = interface.Attribute('The parameters of the lti request')
 
-    headers = Attribute(u'The headers of the lti request')
+    headers = interface.Attribute('The headers of the lti request')
 
 
 class IToolProvider(ITool):
@@ -61,6 +59,7 @@ class ILTIUserFactory(interface.Interface):
         """
         Looks up a user object for an LTIRequest
         If the specified user does not exist, create a user account for them
+        
         :param LTIRequest
         :return User object
         """
