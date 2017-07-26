@@ -15,6 +15,8 @@ from lti.utils import InvalidLTIRequestError
 from zope import component
 from zope import interface
 
+from zope.interface import alsoProvides
+
 from zope.location.interfaces import IContained
 from zope.location.interfaces import LocationError
 
@@ -34,11 +36,14 @@ from nti.app.products.ims import LTI
 from nti.app.products.ims import SIS
 from nti.app.products.ims import TOOLS
 
-from nti.app.products.ims.interfaces import ILTIRequest
-from nti.app.products.ims.interfaces import IToolProvider
 from nti.app.products.ims.interfaces import ILTIUserFactory
 
+from nti.app.products.ims.interfaces import ILTIRequest
+from nti.app.products.ims.interfaces import IToolProvider
+
 from nti.appserver.logon import _create_success_response
+
+from nti.appserver.policies.interfaces import INoAccountCreationEmail
 
 from nti.dataserver.interfaces import ILinkExternalHrefOnly
 
@@ -150,7 +155,11 @@ class LaunchProviderView(AbstractView):
             return hexc.HTTPBadRequest()
         # Try to grab an account
         try:
-            user = ILTIUserFactory(lti_request).user_for_request()
+            # Mark the request to not send an account creation email
+            interface.alsoProvides(lti_request, INoAccountCreationEmail)
+
+            user_factory = ILTIUserFactory(lti_request)
+            user = user_factory.user_for_request(lti_request)
         except InvalidLTIRequestError:
             logger.exception('Invalid LTI Request')
             return hexc.HTTPBadRequest('Unknown tool consumer')

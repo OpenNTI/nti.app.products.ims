@@ -56,15 +56,19 @@ class IOAuthNonceRecorder(interface.Interface):
 
 
 class ILTIUserFactory(interface.Interface):
-    """
-    Looks back through the launch params to find an adapter for a specific
-    site package and can be used through user_for_request() to find a user object
-    for the related provisioner
-    """
 
-    def user_for_request(launch_request):
+    def user_for_request(request):
         """
-        Parse the launch request for relevant parameters and lookup a user
+        Looks up a user object for an LTIRequest
         If the specified user does not exist, create a user account for them
+        :param LTIRequest
         :return User object
         """
+
+
+class ILaunchParamsMapping(interface.Interface):
+    """
+    A mapping of launch request fields to package specific values
+    e.g.
+    'EXAMPLE_PACKAGE_ID': 'tool_consumer_instance_guid'
+    """
