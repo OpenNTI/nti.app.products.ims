@@ -9,13 +9,19 @@ logger = __import__('logging').getLogger(__name__)
 
 from lti import InvalidLTIRequestError
 
+from zope import component
+from zope import interface
+
 from nti.app.products.ims import MessageFactory as _
 
+from nti.app.products.ims.interfaces import ILTIRequest
 from nti.app.products.ims.interfaces import ILTIUserFactory
 
 from nti.ims.lti import adapt_accounting_for_consumer
 
 
+@interface.implementer(ILTIUserFactory)
+@component.adapter(ILTIRequest)
 def user_factory_for_request(request):
     """
     Parses through the launch params of an lti request
