@@ -152,7 +152,7 @@ class LaunchProviderView(AbstractView):
         # Try to grab an account
         try:
             user_factory = ILTIUserFactory(lti_request)
-            user = user_factory.user_for_request()
+            user = user_factory.user_for_request(lti_request)
         except InvalidLTIRequestError:
             logger.exception('Invalid LTI Request')
             return hexc.HTTPBadRequest('Unknown tool consumer')

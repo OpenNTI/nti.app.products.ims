@@ -58,9 +58,9 @@ class FakeUserFactory(object):
     def __init__(self, launch_request):
         self.request = launch_request
 
-    def user_for_request(self):
+    def user_for_request(self, request):
 
-        assert_that(self.request, verifiably_provides(ILTIRequest))
+        assert_that(request, verifiably_provides(ILTIRequest))
         ds = mock_dataserver.current_mock_ds
         return User.get_user(u'cald3307', ds)
 

@@ -57,10 +57,11 @@ class IOAuthNonceRecorder(interface.Interface):
 
 class ILTIUserFactory(interface.Interface):
 
-    def user_for_request():
+    def user_for_request(request):
         """
         Looks up a user object for an LTIRequest
         If the specified user does not exist, create a user account for them
+        :param LTIRequest
         :return User object
         """
 
