@@ -15,8 +15,6 @@ from lti.utils import InvalidLTIRequestError
 from zope import component
 from zope import interface
 
-from zope.interface import alsoProvides
-
 from zope.location.interfaces import IContained
 from zope.location.interfaces import LocationError
 
@@ -157,7 +155,6 @@ class LaunchProviderView(AbstractView):
         try:
             # Mark the request to not send an account creation email
             interface.alsoProvides(lti_request, INoAccountCreationEmail)
-
             user_factory = ILTIUserFactory(lti_request)
             user = user_factory.user_for_request(lti_request)
         except InvalidLTIRequestError:
