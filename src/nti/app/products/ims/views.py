@@ -45,6 +45,7 @@ from nti.appserver.policies.interfaces import INoAccountCreationEmail
 
 from nti.dataserver.interfaces import ILinkExternalHrefOnly
 
+from nti.ims.lti.interfaces import IConfiguredTool
 from nti.ims.lti.interfaces import ITool
 from nti.ims.lti.interfaces import IToolConfigFactory
 
@@ -169,3 +170,10 @@ class LaunchProviderView(AbstractView):
             user_id = None
         redirect_url = provider.tool_url
         return _create_success_response(self.request, user_id, redirect_url)
+
+
+@view_config(route_name='objects.generic.traversal',
+             renderer='rest',
+             request_method='post',
+             context=IConfiguredTool)
+class NewConfiguredToolView(AbstractView):
