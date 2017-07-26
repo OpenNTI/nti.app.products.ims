@@ -59,7 +59,7 @@ class ILTIUserFactory(interface.Interface):
         """
         Looks up a user object for an LTIRequest
         If the specified user does not exist, create a user account for them
-        
+
         :param LTIRequest
         :return User object
         """

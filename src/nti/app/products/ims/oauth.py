@@ -123,7 +123,7 @@ class OAuthSignatureOnlyValidator(RequestValidator):
             # client_key should always be the dummy key here
             return _DUMMY_CLIENT_SECRET
 
-    def validate_client_key(self, client_key, request):
+    def validate_client_key(self, client_key, unused_request):
         try:
             return self._consumer(client_key) is not None
         except KeyError:
@@ -134,7 +134,7 @@ class OAuthSignatureOnlyValidator(RequestValidator):
                                      access_token=None):
         try:
             nonces = component.getUtility(IOAuthNonceRecorder)
-            nonces.record_nonce_received(nonce, 
+            nonces.record_nonce_received(nonce,
                                          expires=self.timestamp_lifetime)
             return True
         except KeyError:
