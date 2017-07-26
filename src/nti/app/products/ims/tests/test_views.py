@@ -14,6 +14,8 @@ from hamcrest import has_entry
 from hamcrest import assert_that
 from hamcrest import has_entries
 
+from nti.testing.matchers import verifiably_provides
+
 from zope import component
 from zope import interface
 
@@ -42,9 +44,6 @@ from nti.dataserver.users.interfaces import IUserProfile
 
 from nti.dataserver.tests import mock_dataserver
 
-from nti.testing.matchers import verifiably_provides
-
-
 ITEMS = StandardExternalFields.ITEMS
 ITEM_COUNT = StandardExternalFields.ITEM_COUNT
 
@@ -59,7 +58,6 @@ class FakeUserFactory(object):
         self.request = launch_request
 
     def user_for_request(self, request):
-
         assert_that(request, verifiably_provides(ILTIRequest))
         ds = mock_dataserver.current_mock_ds
         return User.get_user(u'cald3307', ds)
@@ -150,7 +148,7 @@ class TestToolViews(ApplicationLayerTest):
             self.__create_user(username=u'cald3307',
                                soonerID=u'112133307',
                                OU4x4=u'cald3307',
-                               external_value={'realname': u'Carlos Sanchez', 
+                               external_value={'realname': u'Carlos Sanchez',
                                                'email': u'foo@bar.com'},
                                meta_data={'check_4x4': False})
 
