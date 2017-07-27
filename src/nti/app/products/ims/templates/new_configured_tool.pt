@@ -1,0 +1,29 @@
+<html>
+    <head>
+
+    </head>
+
+    <body>
+        <form>
+
+            <p>Tool Title:</p>
+            <input type="text" name="title" value=""><br>
+
+            <p>Tool Description:</p>
+            <textarea name="description" rows="10" cols="30">
+            </textarea><br>
+
+            <p>Consumer Key:</p>
+            <input type="text" name="consumer_key"><br>
+
+            <p>Secret:</p>
+            <input type="text" name="secret"><br>
+
+            <p>Launch Url:</p>
+            <input type="text" name="launch_url"><br>
+
+            <input type="submit" value="Register Tool">
+            <input type="reset">
+        </form>
+    </body>
+</html>

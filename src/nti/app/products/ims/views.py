@@ -26,6 +26,7 @@ from zope.traversing.interfaces import ITraversable
 from pyramid import httpexceptions as hexc
 
 from pyramid.view import view_config
+from pyramid.view import view_defaults
 
 from nti.app.base.abstract_views import AbstractView
 
@@ -172,8 +173,30 @@ class LaunchProviderView(AbstractView):
         return _create_success_response(self.request, user_id, redirect_url)
 
 
-@view_config(route_name='objects.generic.traversal',
-             renderer='rest',
-             request_method='post',
-             context=IConfiguredTool)
-class NewConfiguredToolView(AbstractView):
+@view_defaults(route_name='objects.generic.traversal',
+               renderer='rest',
+               request_method='POST',
+               context=IConfiguredTool)
+class ConfiguredToolView(AbstractView):
+
+    def __call__(self):
+        lti_request = ILTIRequest(self.request)
+        try:
+            tool_factory = component.queryMultiAdapter((self.context, lti_request),
+                                                       IConfiguredTool)
+            tool_factory.valid_request()
+        except InvalidLTIRequestError:
+            logger.exception('Invalid LTI Request')
+            return hexc.HTTPBadRequest()
+
+    @view_config(request_param='form.edit')
+    def edit_tool(self):
+        pass
+
+    @view_config(request_param='form.delete')
+    def delete_tool(self):
+        pass
+
+    @view_config(request_param='form.new')
+    def new_tool(self):
+        pass
