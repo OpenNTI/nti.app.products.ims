@@ -6,6 +6,8 @@
 
 from __future__ import print_function, absolute_import, division
 
+from zope.component import queryUtility
+
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
@@ -46,7 +48,7 @@ from nti.appserver.policies.interfaces import INoAccountCreationEmail
 
 from nti.dataserver.interfaces import ILinkExternalHrefOnly
 
-from nti.ims.lti.interfaces import IConfiguredTool
+from nti.ims.lti.interfaces import IConfiguredTool, IConfiguredToolContainer
 from nti.ims.lti.interfaces import ITool
 from nti.ims.lti.interfaces import IToolConfigFactory
 
@@ -173,30 +175,27 @@ class LaunchProviderView(AbstractView):
         return _create_success_response(self.request, user_id, redirect_url)
 
 
+@view_config(route_name='objects.generic.traversal',
+             renderer='rest',
+             request_method='POST',
+             context=IConfiguredTool,
+             name="execute_tool")
+class ExecuteConfiguredToolView(AbstractView):
+
+    def __call__(self):
+        tool_container = queryUtility(IConfiguredToolContainer)
+        if self.request.delete or self.request.edit:
+            tool_container.delete_tool(self.request.title)
+        if self.request.new or self.request.edit:
+            tool = IConfiguredTool(self.request)
+            tool_container.add_tool(tool)
+
+        return  # something
+
+
 @view_defaults(route_name='objects.generic.traversal',
                renderer='rest',
                request_method='POST',
                context=IConfiguredTool)
-class ConfiguredToolView(AbstractView):
-
-    def __call__(self):
-        lti_request = ILTIRequest(self.request)
-        try:
-            tool_factory = component.queryMultiAdapter((self.context, lti_request),
-                                                       IConfiguredTool)
-            tool_factory.valid_request()
-        except InvalidLTIRequestError:
-            logger.exception('Invalid LTI Request')
-            return hexc.HTTPBadRequest()
-
-    @view_config(request_param='form.edit')
-    def edit_tool(self):
-        pass
-
-    @view_config(request_param='form.delete')
-    def delete_tool(self):
-        pass
-
-    @view_config(request_param='form.new')
-    def new_tool(self):
-        pass
+class MakeConfiguredToolView(AbstractView):
+    pass
