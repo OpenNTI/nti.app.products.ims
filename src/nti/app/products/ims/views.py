@@ -48,13 +48,21 @@ from nti.appserver.policies.interfaces import INoAccountCreationEmail
 
 from nti.dataserver.interfaces import ILinkExternalHrefOnly
 
-from nti.ims.lti.interfaces import IConfiguredTool, IConfiguredToolContainer
+from nti.externalization.interfaces import LocatedExternalDict
+from nti.externalization.interfaces import StandardExternalFields
+
+from nti.ims.lti.interfaces import IConfiguredTool
+from nti.ims.lti.interfaces import IConfiguredToolContainer
 from nti.ims.lti.interfaces import ITool
 from nti.ims.lti.interfaces import IToolConfigFactory
 
 from nti.links import render_link
 
 from nti.links.links import Link
+
+ITEMS = StandardExternalFields.ITEMS
+TOTAL = StandardExternalFields.TOTAL
+ITEM_COUNT = StandardExternalFields.ITEM_COUNT
 
 
 @interface.implementer(IPathAdapter, IContained)
@@ -178,24 +186,49 @@ class LaunchProviderView(AbstractView):
 @view_config(route_name='objects.generic.traversal',
              renderer='rest',
              request_method='POST',
-             context=IConfiguredTool,
-             name="execute_tool")
-class ExecuteConfiguredToolView(AbstractView):
+             context=IConfiguredToolContainer,
+             name='list_tools')
+class ConfiguredToolsGetView(AbstractView):
 
     def __call__(self):
-        tool_container = queryUtility(IConfiguredToolContainer)
-        if self.request.delete or self.request.edit:
-            tool_container.delete_tool(self.request.title)
-        if self.request.new or self.request.edit:
-            tool = IConfiguredTool(self.request)
-            tool_container.add_tool(tool)
-
-        return  # something
+        result = LocatedExternalDict()
+        items = [tool for tool in self.context.values()]
+        result[ITEMS] = items
+        result[TOTAL] = result[ITEM_COUNT] = len(items)
+        return result
 
 
-@view_defaults(route_name='objects.generic.traversal',
-               renderer='rest',
-               request_method='POST',
-               context=IConfiguredTool)
-class MakeConfiguredToolView(AbstractView):
-    pass
+@view_config(route_name='objects.generic.traversal',
+             renderer='rest',
+             request_method='POST',
+             context=IConfiguredToolContainer,
+             name='create_tool')
+class ConfiguredToolCreateView(AbstractView):
+
+    def __call__(self):
+        tool = IConfiguredTool(self.request)
+        self.context.add_tool(tool)
+
+
+@view_config(route_name='objects.generic.traversal',
+             renderer='rest',
+             request_method='POST',
+             context=IConfiguredToolContainer,
+             name='delete_tool')
+class ConfiguredToolDeleteView(AbstractView):
+
+    def __call__(self):
+        name = self.request.title
+        self.context.delete_tool(name)
+
+
+@view_config(route_name='objects.generic.traversal',
+             renderer='rest',
+             request_method='POST',
+             context=IConfiguredToolContainer,
+             name='edit_tool')
+class ConfiguredToolEditView(AbstractView):
+
+    def __call__(self):
+        name = self.request.title
+        self.context.edit_tool(name)
