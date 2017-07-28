@@ -30,7 +30,7 @@ from pyramid import httpexceptions as hexc
 from pyramid.view import view_config
 from pyramid.view import view_defaults
 
-from nti.app.base.abstract_views import AbstractView
+from nti.app.base.abstract_views import AbstractView, AbstractAuthenticatedView
 
 from nti.app.products.ims import IMS
 from nti.app.products.ims import LTI
@@ -188,11 +188,15 @@ class LaunchProviderView(AbstractView):
              request_method='POST',
              context=IConfiguredToolContainer,
              name='list_tools')
-class ConfiguredToolsGetView(AbstractView):
+class ConfiguredToolsGetView(AbstractAuthenticatedView):
+
+    def get_tools(self):
+        return self.context
 
     def __call__(self):
+        tools = self.get_tools()
         result = LocatedExternalDict()
-        items = [tool for tool in self.context.values()]
+        items = [tool for tool in tools.values()]
         result[ITEMS] = items
         result[TOTAL] = result[ITEM_COUNT] = len(items)
         return result
@@ -205,9 +209,16 @@ class ConfiguredToolsGetView(AbstractView):
              name='create_tool')
 class ConfiguredToolCreateView(AbstractView):
 
+    def get_tools(self):
+        return self.context
+
     def __call__(self):
-        tool = IConfiguredTool(self.request)
-        self.context.add_tool(tool)
+        params = self.request.params
+        from IPython.core.debugger import Tracer;Tracer()()
+
+        tool = IConfiguredTool(**params)
+        tools = self.get_tools()
+        tools.add_tool(tool)
 
 
 @view_config(route_name='objects.generic.traversal',

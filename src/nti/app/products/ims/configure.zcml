@@ -74,4 +74,8 @@
 			 provides=".interfaces.ILTIUserFactory"
 			 for=".interfaces.ILTIRequest" />
 
+	<adapter factory="nti.ims.lti.consumer.ConfiguredTool"
+			 provides="nti.ims.lti.interfaces.IConfiguredTool"
+	 		 for="pyramid.interfaces.IRequest" />
+
 </configure>
