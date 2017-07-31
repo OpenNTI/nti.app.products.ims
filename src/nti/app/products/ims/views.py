@@ -186,9 +186,8 @@ class LaunchProviderView(AbstractView):
 
 @view_config(route_name='objects.generic.traversal',
              renderer='rest',
-             request_method='POST',
-             context=IConfiguredToolContainer,
-             name='list_tools')
+             request_method='GET',
+             context=IConfiguredToolContainer)
 class ConfiguredToolsGetView(AbstractAuthenticatedView):
 
     def get_tools(self):
@@ -206,8 +205,7 @@ class ConfiguredToolsGetView(AbstractAuthenticatedView):
 @view_config(route_name='objects.generic.traversal',
              renderer='rest',
              request_method='POST',
-             context=IConfiguredToolContainer,
-             name='create_tool')
+             context=IConfiguredToolContainer)
 class ConfiguredToolCreateView(AbstractView):
 
     def get_tools(self):
@@ -222,8 +220,8 @@ class ConfiguredToolCreateView(AbstractView):
 
 @view_config(route_name='objects.generic.traversal',
              renderer='rest',
-             request_method='POST',
-             context=IConfiguredToolContainer,
+             request_method='DELETE',
+             context=IConfiguredTool,
              name='delete_tool')
 class ConfiguredToolDeleteView(AbstractView):
 
@@ -234,11 +232,11 @@ class ConfiguredToolDeleteView(AbstractView):
 
 @view_config(route_name='objects.generic.traversal',
              renderer='rest',
-             request_method='POST',
-             context=IConfiguredToolContainer,
+             request_method='PUT',
+             context=IConfiguredTool,
              name='edit_tool')
 class ConfiguredToolEditView(AbstractView):
 
     def __call__(self):
-        name = self.request.title
-        self.context.edit_tool(name)
+        #TODO add functionality
+        pass
