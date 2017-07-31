@@ -27,8 +27,9 @@ from zope.traversing.interfaces import ITraversable
 
 from pyramid import httpexceptions as hexc
 
+from pyramid.response import Response
+
 from pyramid.view import view_config
-from pyramid.view import view_defaults
 
 from nti.app.base.abstract_views import AbstractView, AbstractAuthenticatedView
 
@@ -213,12 +214,10 @@ class ConfiguredToolCreateView(AbstractView):
         return self.context
 
     def __call__(self):
-        params = self.request.params
-        from IPython.core.debugger import Tracer;Tracer()()
-
-        tool = IConfiguredTool(**params)
+        tool = IConfiguredTool(self.request)
         tools = self.get_tools()
         tools.add_tool(tool)
+        return hexc.HTTPCreated('Successfully created tool')
 
 
 @view_config(route_name='objects.generic.traversal',
