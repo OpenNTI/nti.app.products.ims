@@ -8,6 +8,8 @@ from __future__ import print_function, absolute_import, division
 
 from zope.component import queryUtility
 
+from nti.app.externalization.view_mixins import ModeledContentUploadRequestUtilsMixin
+
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
@@ -26,8 +28,6 @@ from zope.traversing.interfaces import IPathAdapter
 from zope.traversing.interfaces import ITraversable
 
 from pyramid import httpexceptions as hexc
-
-from pyramid.response import Response
 
 from pyramid.view import view_config
 
@@ -206,13 +206,13 @@ class ConfiguredToolsGetView(AbstractAuthenticatedView):
              renderer='rest',
              request_method='POST',
              context=IConfiguredTool)
-class ConfiguredToolCreateView(AbstractView):
+class ConfiguredToolCreateView(AbstractAuthenticatedView, ModeledContentUploadRequestUtilsMixin):
 
     def get_tools(self):
         return self.context.__parent__
 
     def __call__(self):
-        tool = self.context(self.request)
+        tool = self.readCreateUpdateContentObject(self.remoteUser)
         tools = self.get_tools()
         tools.add_tool(tool)
         return hexc.HTTPCreated('Successfully created tool')
