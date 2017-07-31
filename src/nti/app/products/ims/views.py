@@ -205,14 +205,14 @@ class ConfiguredToolsGetView(AbstractAuthenticatedView):
 @view_config(route_name='objects.generic.traversal',
              renderer='rest',
              request_method='POST',
-             context=IConfiguredToolContainer)
+             context=IConfiguredTool)
 class ConfiguredToolCreateView(AbstractView):
 
     def get_tools(self):
-        return self.context
+        return self.context.__parent__
 
     def __call__(self):
-        tool = IConfiguredTool(self.request)
+        tool = self.context(self.request)
         tools = self.get_tools()
         tools.add_tool(tool)
         return hexc.HTTPCreated('Successfully created tool')
@@ -225,9 +225,13 @@ class ConfiguredToolCreateView(AbstractView):
              name='delete_tool')
 class ConfiguredToolDeleteView(AbstractView):
 
+    def get_tools(self):
+        return self.context.__parent__
+
     def __call__(self):
         name = self.request.title
-        self.context.delete_tool(name)
+        tools = self.get_tools()
+        tools.delete_tool(name)
 
 
 @view_config(route_name='objects.generic.traversal',
@@ -237,6 +241,9 @@ class ConfiguredToolDeleteView(AbstractView):
              name='edit_tool')
 class ConfiguredToolEditView(AbstractView):
 
+    def get_tools(self):
+        return self.context.__parent__
+
     def __call__(self):
-        #TODO add functionality
+        # TODO add functionality
         pass
