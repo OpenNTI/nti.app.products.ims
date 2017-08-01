@@ -52,7 +52,7 @@ from nti.dataserver.interfaces import ILinkExternalHrefOnly
 from nti.externalization.interfaces import LocatedExternalDict
 from nti.externalization.interfaces import StandardExternalFields
 
-from nti.ims.lti.interfaces import IConfiguredTool
+from nti.ims.lti.interfaces import IConfiguredTool, IToolConfig
 from nti.ims.lti.interfaces import IConfiguredToolContainer
 from nti.ims.lti.interfaces import ITool
 from nti.ims.lti.interfaces import IToolConfigFactory
@@ -213,9 +213,10 @@ class ConfiguredToolCreateView(AbstractAuthenticatedView, ModeledContentUploadRe
 
     def __call__(self):
         tool = self.readCreateUpdateContentObject(self.remoteUser)
+        tool.config = IToolConfig(self.request)
         tools = self.get_tools()
         tools.add_tool(tool)
-        return hexc.HTTPCreated('Successfully created tool')
+        return hexc.HTTPCreated('Tool created successfully')
 
 
 @view_config(route_name='objects.generic.traversal',
