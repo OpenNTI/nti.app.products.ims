@@ -6,10 +6,6 @@
 
 from __future__ import print_function, absolute_import, division
 
-from zope.component import queryUtility
-
-from nti.app.externalization.view_mixins import ModeledContentUploadRequestUtilsMixin
-
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
@@ -31,7 +27,12 @@ from pyramid import httpexceptions as hexc
 
 from pyramid.view import view_config
 
-from nti.app.base.abstract_views import AbstractView, AbstractAuthenticatedView
+from nti.app.base.abstract_views import AbstractView
+from nti.app.base.abstract_views import AbstractAuthenticatedView
+
+from nti.app.externalization.view_mixins import ModeledContentUploadRequestUtilsMixin
+
+from nti.app.products.ims import MessageFactory as _
 
 from nti.app.products.ims import IMS
 from nti.app.products.ims import LTI
@@ -52,9 +53,10 @@ from nti.dataserver.interfaces import ILinkExternalHrefOnly
 from nti.externalization.interfaces import LocatedExternalDict
 from nti.externalization.interfaces import StandardExternalFields
 
-from nti.ims.lti.interfaces import IConfiguredTool, IToolConfig
+from nti.ims.lti.interfaces import IConfiguredTool
 from nti.ims.lti.interfaces import IConfiguredToolContainer
 from nti.ims.lti.interfaces import ITool
+from nti.ims.lti.interfaces import IToolConfig
 from nti.ims.lti.interfaces import IToolConfigFactory
 
 from nti.links import render_link
@@ -216,7 +218,8 @@ class ConfiguredToolCreateView(AbstractAuthenticatedView, ModeledContentUploadRe
         tool.config = IToolConfig(self.request)
         tools = self.get_tools()
         tools.add_tool(tool)
-        return hexc.HTTPCreated('Tool created successfully')
+        msg = _('Tool created successfully')
+        return hexc.HTTPCreated(msg)
 
 
 @view_config(route_name='objects.generic.traversal',
