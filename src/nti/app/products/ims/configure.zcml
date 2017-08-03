@@ -9,6 +9,7 @@
 	<include package="zope.security" />
 
 	<include package="nti.ims" />
+	<include package="." file="configure_tables.zcml" />
 
 	<!-- OAuth -->
 	<configure zcml:condition="not-have devmode">

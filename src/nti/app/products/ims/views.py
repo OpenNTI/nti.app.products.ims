@@ -6,6 +6,8 @@
 
 from __future__ import print_function, absolute_import, division
 
+from nti.app.products.ims._table_utils import make_specific_table, LTIToolsTable
+
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
@@ -263,3 +265,22 @@ class ConfiguredToolEditView(AbstractView):
     def __call__(self):
         # TODO add functionality
         pass
+
+
+@view_config(route_name='objects.generic.traversal',
+             renderer='templates/lti_configured_tool_summary.pt',
+             request_method='GET',
+             context=IConfiguredToolContainer,
+             name='list_lti_configured_tools')
+def list_tools(context, request):
+    tool_table = make_specific_table(LTIToolsTable, context, request)
+    return {'table': tool_table}
+
+
+@view_config(route_name='objects.generic.traversal',
+             renderer='templates/lti_create_configured_tool.pt',
+             request_method='GET',
+             context=IConfiguredTool,
+             name='create_edit_configured_lti_tool')
+def create_edit_tool_view(context, request):
+    return
