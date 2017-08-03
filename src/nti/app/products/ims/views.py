@@ -219,14 +219,7 @@ class ConfiguredToolCreateView(AbstractAuthenticatedView, ModeledContentUploadRe
         return self.context
 
     def __call__(self):
-        # A hook for form submission
-        if self.request.params:
-            json_params = json.dumps(dict(self.request.params))
-            json_params = json.loads(json_params)
-            tool = self.readCreateUpdateContentObject(self.remoteUser,
-                                                      externalValue=json_params)
-        else:
-            tool = self.readCreateUpdateContentObject(self.remoteUser)
+        tool = self.readCreateUpdateContentObject(self.remoteUser)
         tool.config = IToolConfig(self.request)
         tools = self.get_tools()
         tools.add_tool(tool)
@@ -261,9 +254,16 @@ class ConfiguredToolEditView(AbstractView):
         return self.context.__parent__
 
     def __call__(self):
-        # TODO add functionality
-        pass
+        tool = self.context
+        params = self.request.json_body
+        tool.title = params['title']
+        tool.description = params['description']
+        tool.consumer_key = params['consumer_key']
+        tool.secret = params['secret']
 
+        tool.config = IToolConfig(self.request)
+
+        return hexc.HTTPOk("Successfully edited tool")
 
 @view_config(route_name='objects.generic.traversal',
              renderer='templates/lti_configured_tool_summary.pt',
@@ -281,7 +281,10 @@ def list_tools(context, request):
              name='create_view',
              context=IConfiguredToolContainer)
 def create(context, request):
-    return
+    return {'title': 'Create an LTI Configured Tool',
+            'extension': '@@create',
+            'method': 'POST',
+            'redirect': request.resource_url(context, '@@list')}
 
 
 @view_config(route_name='objects.generic.traversal',
@@ -290,14 +293,17 @@ def create(context, request):
              name='edit_view',
              context=IConfiguredTool)
 def edit(context, request):
-    tool = context
     properties = dict()
 
-    properties['title'] = tool.title
-    properties['description'] = tool.description
-    properties['consumer_key'] = tool.consumer_key
-    properties['secret'] = tool.secret
-    # properties['launch_url'] = tool.config['launch_url']
-    # properties['secure_launch_url'] = tool.config['secure_launch_url']
+    properties['title'] = context.title
+    properties['description'] = context.description
+    properties['consumer_key'] = context.consumer_key
+    properties['secret'] = context.secret
+    # properties['launch_url'] = context.config.launch_url
+    # properties['secure_launch_url'] = context.config.secure_launch_url
 
-    return {'edit_properties': properties}
+    return {'edit_properties': properties,
+            'title': 'Edit an LTI Configured Tool',
+            'extension': '@@edit',
+            'method': 'PUT',
+            'redirect': request.resource_url(context.__parent__, '@@list')}

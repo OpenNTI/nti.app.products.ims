@@ -4,7 +4,7 @@
 	  xmlns:tal="http://xml.zope.org/namespaces/tal">
     <head>
 		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-		<title>Create an LTI Configured Tool</title>
+		<title tal:content="options/title">Create an LTI Configured Tool</title>
         <script type="text/javascript">
             function displayForm(uploadXML){
                 if(uploadXML.value == "1"){
@@ -20,10 +20,53 @@
 
             }
         </script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+        <script tal:content="string:var ext='${options/extension}';"></script>
+        <script tal:content="string:var method='${options/method}';"></script>
+        <script tal:content="string:var redirect='${options/redirect}';"></script>
+        <script>
+
+            function ConvertFormToJSON(form){
+                var array = jQuery(form).serializeArray();
+                var json = {};
+
+                jQuery.each(array, function() {
+                    json[this.name] = this.value || '';
+                });
+
+                return json;
+            }
+
+            $(document).ready(function() {
+                $('#submit').on('click', function (e) {
+                    var a = $('#tool_form').serializeArray();
+                    var o = {};
+                    $.each(a, function () {
+                        if (o[this.name]) {
+                            if (!o[this.name].push) {
+                                o[this.name] = [o[this.name]];
+                            }
+                            o[this.name].push(this.value || '');
+                        } else {
+                            o[this.name] = this.value || '';
+                        }
+                    });
+                    $.ajax({
+                        url: ext,
+                        type: method,
+                        contentType: 'application/json; charset=utf-8',
+                        data: JSON.stringify(o),
+                        success: function() {
+                            window.location.href = redirect;
+                        }
+                    });
+                });
+            });
+        </script>
 	</head>
 	<body>
-		<h2>Create an LTI Configured Tool</h2>
-            <form method="post" target="creation_response" action="@@create">
+		<h2 tal:content="options/title">Create an LTI Configured Tool</h2>
+            <form id="tool_form" action="#">
                 <label>Title<input type="text" name="title" tal:attributes='value options/edit_properties/title | nothing'></label><br>
                 <label>Description<input type="textarea" name="description" rows="3" cols="50" tal:attributes='value options/edit_properties/description | nothing'></label><br>
                 <label>Consumer Key<input type="text" name="consumer_key" tal:attributes='value options/edit_properties/consumer_key | nothing'></label><br>
@@ -43,10 +86,9 @@
 
                 <input type="hidden" name="MimeType" value="application/vnd.nextthought.ims.consumer.configuredtool">
 
-                <button type="submit" value="Submit">Submit</button>
+                <input type="button" id="submit" value="Submit" name="submit">
                 <button type="reset">Reset</button>
             </form>
-            <iframe name="creation_response"></iframe>
 
 	</body>
 </html>

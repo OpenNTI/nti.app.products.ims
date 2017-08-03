@@ -40,7 +40,7 @@ class TitleColumn(column.Column):
     header = u'Title'
 
     def renderCell(self, tool):
-        return tool.__name__
+        return tool.title
 
 
 class DescriptionColumn(column.Column):
@@ -72,7 +72,6 @@ class DeleteColumn(column.Column):
     buttonTitle = 'DELETE'
 
     def renderCell(self, item):
-        user = get_remote_user(self.request)
 
         action_url = self.request.resource_url(item, '@@delete')
         return """<button onclick=deleteTool('%s')>%s</button>""" \
