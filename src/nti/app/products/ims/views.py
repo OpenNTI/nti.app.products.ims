@@ -278,7 +278,24 @@ def list_tools(context, request):
 @view_config(route_name='objects.generic.traversal',
              renderer='templates/lti_create_configured_tool.pt',
              request_method='GET',
-             context=IConfiguredToolContainer,
-             name='create_view')
-def create_tool_view(context, request):
+             name='create_view',
+             context=IConfiguredToolContainer)
+def create(context, request):
     return
+
+
+@view_config(route_name='objects.generic.traversal',
+             renderer='templates/lti_create_configured_tool.pt',
+             request_method='GET',
+             name='edit_view',
+             context=IConfiguredTool)
+def edit(context, request):
+    tool = context
+    properties = dict()
+
+    properties['title'] = tool.title
+    properties['description'] = tool.description
+    properties['consumer_key'] = tool.consumer_key
+    properties['secret'] = tool.secret
+
+    return {'edit_properties': properties}

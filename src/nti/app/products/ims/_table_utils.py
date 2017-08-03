@@ -72,15 +72,9 @@ class DeleteColumn(column.Column):
     buttonTitle = 'DELETE'
     header = u'Delete'
 
-    def _onsubmit(self, item):
-        msg = "'Are you sure you want to delete the tool %s?'" % item.title
-        return 'onclick="return confirm(%s)"' % msg
-
     def renderCell(self, item):
         user = get_remote_user(self.request)
 
-        # if not has_permission(nauth.ACT_DELETE, item, user):
-        #     return ''
         action_url = self.request.resource_url(item, '@@delete')
         return """<button onclick=deleteTool('%s')>%s</button>""" \
                % (action_url, self.buttonTitle)
