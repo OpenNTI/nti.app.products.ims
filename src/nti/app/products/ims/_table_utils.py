@@ -81,13 +81,9 @@ class DeleteColumn(column.Column):
 
         # if not has_permission(nauth.ACT_DELETE, item, user):
         #     return ''
-        from IPython.core.debugger import Tracer;Tracer()()
-        action_url = self.request.resource_url(self.context, '@@delete_lti_tool')
-        return """<form action="%s" method="post">
-                    <input type="hidden" name="tool_name" value=%s>
-                    <button type="submit">%s</button>
-				  </form>"""\
-               % (action_url, item.__name__, self.buttonTitle)
+        action_url = self.request.resource_url(item, '@@delete')
+        return """<button onclick=deleteTool('%s')>%s</button>""" \
+               % (action_url, self.buttonTitle)
 
 
 def make_specific_table(tableClassName, container, request):

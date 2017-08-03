@@ -5,6 +5,18 @@
     <head>
 		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 		<title>LTI Configured Tools Table</title>
+        <script type="text/javascript">
+            function deleteTool(url) {
+                var xhr = new XMLHttpRequest();
+                xhr.open("DELETE", url, true);
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState == 4) {
+                        location.reload(true);
+                    }
+                }
+                xhr.send();
+            }
+        </script>
 	</head>
 	<body>
 		<h2>Configured LTI Tool List</h2>

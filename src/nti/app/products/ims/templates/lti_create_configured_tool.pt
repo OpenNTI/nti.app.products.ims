@@ -23,7 +23,7 @@
 	</head>
 	<body>
 		<h2>Create an LTI Configured Tool</h2>
-            <form method="post" target="creation_response" action="@@create_lti_tool">
+            <form method="post" target="creation_response" action="@@create">
                 <label>Title<input type="text" name="title"></label><br>
                 <label>Description<input type="textarea" name="description" rows="3" cols="50"></label><br>
                 <label>Consumer Key<input type="text" name="consumer_key"></label><br>

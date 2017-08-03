@@ -211,15 +211,14 @@ class ConfiguredToolsGetView(AbstractAuthenticatedView):
 @view_config(route_name='objects.generic.traversal',
              renderer='rest',
              request_method='POST',
-             context=IConfiguredTool)
+             context=IConfiguredToolContainer,
+             name='create')
 class ConfiguredToolCreateView(AbstractAuthenticatedView, ModeledContentUploadRequestUtilsMixin):
 
     def get_tools(self):
-        return self.context.__parent__
+        return self.context
 
     def __call__(self):
-        from IPython.core.debugger import Tracer;Tracer()()
-
         # A hook for form submission
         if self.request.params:
             json_params = json.dumps(dict(self.request.params))
@@ -239,16 +238,15 @@ class ConfiguredToolCreateView(AbstractAuthenticatedView, ModeledContentUploadRe
              renderer='rest',
              request_method='DELETE',
              context=IConfiguredTool,
-             name='delete_tool')
+             name='delete')
 class ConfiguredToolDeleteView(AbstractView):
 
     def get_tools(self):
         return self.context.__parent__
 
     def __call__(self):
-        name = self.request.params['tool_name']
         tools = self.get_tools()
-        tools.delete_tool(name)
+        tools.delete_tool(self.context)
         return hexc.HTTPNoContent()
 
 
@@ -256,7 +254,7 @@ class ConfiguredToolDeleteView(AbstractView):
              renderer='rest',
              request_method='PUT',
              context=IConfiguredTool,
-             name='edit_tool')
+             name='edit')
 class ConfiguredToolEditView(AbstractView):
 
     def get_tools(self):
@@ -271,7 +269,7 @@ class ConfiguredToolEditView(AbstractView):
              renderer='templates/lti_configured_tool_summary.pt',
              request_method='GET',
              context=IConfiguredToolContainer,
-             name='list_lti_configured_tools')
+             name='list')
 def list_tools(context, request):
     tool_table = make_specific_table(LTIToolsTable, context, request)
     return {'table': tool_table}
@@ -280,7 +278,7 @@ def list_tools(context, request):
 @view_config(route_name='objects.generic.traversal',
              renderer='templates/lti_create_configured_tool.pt',
              request_method='GET',
-             context=IConfiguredTool,
-             name='create_edit_configured_lti_tool')
-def create_edit_tool_view(context, request):
+             context=IConfiguredToolContainer,
+             name='create_view')
+def create_tool_view(context, request):
     return
