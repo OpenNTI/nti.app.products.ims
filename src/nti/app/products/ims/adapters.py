@@ -46,4 +46,7 @@ def user_factory_for_request(request):
 @interface.implementer(IToolConfig)
 @component.adapter(IRequest)
 def persistent_tool_config_for_request(request):
+    # Form submission hook
+    if request.params:
+        return PersistentToolConfig(request.params)
     return PersistentToolConfig(request.json_body)

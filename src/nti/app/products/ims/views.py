@@ -12,6 +12,8 @@ logger = __import__('logging').getLogger(__name__)
 
 from lti.utils import InvalidLTIRequestError
 
+import json
+
 from zope import component
 from zope import interface
 
@@ -214,7 +216,16 @@ class ConfiguredToolCreateView(AbstractAuthenticatedView, ModeledContentUploadRe
         return self.context.__parent__
 
     def __call__(self):
-        tool = self.readCreateUpdateContentObject(self.remoteUser)
+        from IPython.core.debugger import Tracer;Tracer()()
+
+        # A hook for form submission
+        if self.request.params:
+            json_params = json.dumps(dict(self.request.params))
+            json_params = json.loads(json_params)
+            tool = self.readCreateUpdateContentObject(self.remoteUser,
+                                                      externalValue=json_params)
+        else:
+            tool = self.readCreateUpdateContentObject(self.remoteUser)
         tool.config = IToolConfig(self.request)
         tools = self.get_tools()
         tools.add_tool(tool)
@@ -233,9 +244,10 @@ class ConfiguredToolDeleteView(AbstractView):
         return self.context.__parent__
 
     def __call__(self):
-        name = self.request.title
+        name = self.request.params['tool_name']
         tools = self.get_tools()
         tools.delete_tool(name)
+        return hexc.HTTPNoContent()
 
 
 @view_config(route_name='objects.generic.traversal',
