@@ -8,12 +8,12 @@
         <script type="text/javascript">
             function displayForm(uploadXML){
                 if(uploadXML.value == "1"){
-                    document.getElementById("upload").style.visibility='visible';
-                    document.getElementById("input").style.visibility='hidden';
+                    document.getElementById("input").style.visibility='visible';
+                    document.getElementById("upload").style.visibility='hidden';
                 }
                 else if(uploadXML.value =="2"){
-                    document.getElementById("upload").style.visibility='hidden';
-                    document.getElementById("input").style.visibility='visible';
+                    document.getElementById("input").style.visibility='hidden';
+                    document.getElementById("upload").style.visibility='visible';
                 }
                 else{
                 }
@@ -29,16 +29,16 @@
                 <label>Consumer Key<input type="text" name="consumer_key" tal:attributes='value options/edit_properties/consumer_key | nothing'></label><br>
                 <label>Secret<input type="text" name="secret" tal:attributes='value options/edit_properties/secret | nothing'></label><br>
 
-                <label>Upload XML Tool Config<input checked="checked" value="1" type="radio" name="formselector" onclick="displayForm(this)"></label>
-                <label>Input Tool Config parameters<input value="2" type="radio" name="formselector" onclick="displayForm(this)"></label>
+                <label>Input Tool Config parameters<input checked="checked" value="1" type="radio" name="formselector" onclick="displayForm(this)"></label>
+                <label>Upload XML Tool Config<input value="2" type="radio" name="formselector" onclick="displayForm(this)"></label>
 
-                <div id="upload" style="visibility:visible">
-                    <input type="file" accept=".xml/*"/>
-                </div>
-
-                <div id="input" style="visibility:hidden">
+                <div id="input" style="visibility:visible">
                     <label>Launch URL<input type="text" name="launch_url"></label><br>
                     <label>Secure Launch URL<input type="text" name="secure_launch_url"></label>
+                </div>
+
+                <div id="upload" style="visibility:hidden">
+                    <input type="file" accept=".xml/*"/>
                 </div>
 
                 <input type="hidden" name="MimeType" value="application/vnd.nextthought.ims.consumer.configuredtool">

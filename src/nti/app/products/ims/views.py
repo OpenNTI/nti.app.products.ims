@@ -297,5 +297,7 @@ def edit(context, request):
     properties['description'] = tool.description
     properties['consumer_key'] = tool.consumer_key
     properties['secret'] = tool.secret
+    # properties['launch_url'] = tool.config['launch_url']
+    # properties['secure_launch_url'] = tool.config['secure_launch_url']
 
     return {'edit_properties': properties}

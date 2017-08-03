@@ -68,9 +68,8 @@ class SecretColumn(column.Column):
 
 
 class DeleteColumn(column.Column):
-    weight = 5
+    weight = 6
     buttonTitle = 'DELETE'
-    header = u'Delete'
 
     def renderCell(self, item):
         user = get_remote_user(self.request)
@@ -79,6 +78,19 @@ class DeleteColumn(column.Column):
         return """<button onclick=deleteTool('%s')>%s</button>""" \
                % (action_url, self.buttonTitle)
 
+
+class EditColumn(column.Column):
+    weight = 5
+    buttonTitle = 'EDIT'
+
+    def renderCell(self, item):
+
+        action_url = self.request.resource_url(item, '@@edit_view')
+        return """<form action='%s'>
+                    <button type='submit'>%s</button>
+                  </form>
+               """ \
+               % (action_url, self.buttonTitle)
 
 def make_specific_table(tableClassName, container, request):
 

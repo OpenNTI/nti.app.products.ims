@@ -34,4 +34,10 @@
          provides="z3c.table.interfaces.IColumn"
          for="* * ._table_utils.LTIToolsTable"
          name="delete" />
+
+	<adapter factory="._table_utils.EditColumn"
+			 provides="z3c.table.interfaces.IColumn"
+			 for="* * ._table_utils.LTIToolsTable"
+			 name="edit" />
+
 </configure>
