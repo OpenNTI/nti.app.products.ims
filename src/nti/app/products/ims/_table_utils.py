@@ -91,6 +91,20 @@ class EditColumn(column.Column):
                """ \
                % (action_url, self.buttonTitle)
 
+
+class ToolConfigColumn(column.Column):
+    weight = 7
+    buttonTitle = 'Tool Config'
+
+    def renderCell(self, item):
+
+        action_url = self.request.resource_url(item, '@@tool_config_view')
+        return """<form action='%s'>
+                    <button type='submit'>%s</button>
+                  </form>
+               """ \
+               % (action_url, self.buttonTitle)
+
 def make_specific_table(tableClassName, container, request):
 
     the_table = tableClassName(container, IBrowserRequest(request))

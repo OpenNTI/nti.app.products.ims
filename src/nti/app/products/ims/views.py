@@ -6,6 +6,7 @@
 
 from __future__ import print_function, absolute_import, division
 
+from lti import tool_config
 from nti.app.products.ims._table_utils import make_specific_table, LTIToolsTable
 
 __docformat__ = "restructuredtext en"
@@ -219,7 +220,6 @@ class ConfiguredToolCreateView(AbstractAuthenticatedView, ModeledContentUploadRe
         return self.context
 
     def __call__(self):
-        from IPython.core.debugger import Tracer;Tracer()()
         tool = self.readCreateUpdateContentObject(self.remoteUser)
         tools = self.get_tools()
         tools.add_tool(tool)
@@ -268,7 +268,6 @@ class ConfiguredToolEditView(AbstractAuthenticatedView, ModeledContentUploadRequ
              context=IConfiguredToolContainer,
              name='list')
 def list_tools(context, request):
-    from IPython.core.debugger import Tracer;Tracer()()
     tool_table = make_specific_table(LTIToolsTable, context, request)
     return {'table': tool_table}
 
@@ -293,8 +292,8 @@ def create(context, request):
 def edit(context, request):
     properties = dict()
 
-    properties['title'] = context.title
-    properties['description'] = context.description
+    #properties['title'] = context.title
+    #properties['description'] = context.description
     properties['consumer_key'] = context.consumer_key
     properties['secret'] = context.secret
     # properties['launch_url'] = context.config.launch_url
@@ -305,3 +304,17 @@ def edit(context, request):
             'extension': '@@edit',
             'method': 'PUT',
             'redirect': request.resource_url(context.__parent__, '@@list')}
+
+
+@view_config(route_name='objects.generic.traversal',
+             renderer='templates/lti_tool_config.pt',
+             request_method='GET',
+             name='tool_config_view',
+             context=IConfiguredTool)
+def view_config(context, request):
+    config = context.config
+    attributes = dict()
+    for attr in tool_config.VALID_ATTRIBUTES:
+        attributes[attr] = getattr(config, attr)
+
+    return {'attrs': attributes}
