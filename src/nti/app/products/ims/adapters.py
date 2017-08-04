@@ -41,12 +41,3 @@ def user_factory_for_request(request):
         msg = _(u'No user factory was found for this consumer tool')
         raise InvalidLTIRequestError(msg)
     return user_factory
-
-
-@interface.implementer(IToolConfig)
-@component.adapter(IRequest)
-def persistent_tool_config_for_request(request):
-    # Form submission hook
-    if request.params:
-        return PersistentToolConfig(request.params)
-    return PersistentToolConfig(request.json_body)

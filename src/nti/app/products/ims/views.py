@@ -219,8 +219,8 @@ class ConfiguredToolCreateView(AbstractAuthenticatedView, ModeledContentUploadRe
         return self.context
 
     def __call__(self):
+        from IPython.core.debugger import Tracer;Tracer()()
         tool = self.readCreateUpdateContentObject(self.remoteUser)
-        tool.config = IToolConfig(self.request)
         tools = self.get_tools()
         tools.add_tool(tool)
         msg = _('Tool created successfully')
@@ -248,20 +248,17 @@ class ConfiguredToolDeleteView(AbstractView):
              request_method='PUT',
              context=IConfiguredTool,
              name='edit')
-class ConfiguredToolEditView(AbstractView):
+class ConfiguredToolEditView(AbstractAuthenticatedView, ModeledContentUploadRequestUtilsMixin):
 
     def get_tools(self):
         return self.context.__parent__
 
     def __call__(self):
-        tool = self.context
-        params = self.request.json_body
-        tool.title = params['title']
-        tool.description = params['description']
-        tool.consumer_key = params['consumer_key']
-        tool.secret = params['secret']
-
-        tool.config = IToolConfig(self.request)
+        name = self.context.__name__
+        tool = self.readCreateUpdateContentObject(self.remoteUser)
+        tool.__name__ = name
+        tools = self.get_tools()
+        tools.edit_tool(tool)
 
         return hexc.HTTPOk("Successfully edited tool")
 
@@ -271,6 +268,7 @@ class ConfiguredToolEditView(AbstractView):
              context=IConfiguredToolContainer,
              name='list')
 def list_tools(context, request):
+    from IPython.core.debugger import Tracer;Tracer()()
     tool_table = make_specific_table(LTIToolsTable, context, request)
     return {'table': tool_table}
 

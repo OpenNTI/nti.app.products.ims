@@ -23,20 +23,8 @@
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
         <script tal:content="string:var ext='${options/extension}';"></script>
         <script tal:content="string:var method='${options/method}';"></script>
-        <script tal:content="string:var redirect='${options/redirect}';"></script>
+        <script tal:content="string:var redirect='${options/redirect}';"></script><!--?
         <script>
-
-            function ConvertFormToJSON(form){
-                var array = jQuery(form).serializeArray();
-                var json = {};
-
-                jQuery.each(array, function() {
-                    json[this.name] = this.value || '';
-                });
-
-                return json;
-            }
-
             $(document).ready(function() {
                 $('#submit').on('click', function (e) {
                     var a = $('#tool_form').serializeArray();
@@ -62,11 +50,43 @@
                     });
                 });
             });
+        </script>-->
+        <script>
+            $(document).ready(function () {
+
+                $("#submit").click(function (event) {
+
+                    //stop submit the form, we will post it manually.
+                    event.preventDefault();
+
+                    // Get form
+                    var form = $('#tool_form')[0];
+
+                    // Create an FormData object
+                    var data = new FormData(form);
+
+                    $.ajax({
+                        type: method,
+                        enctype: 'multipart/form-data',
+                        url: ext,
+                        data: data,
+                        processData: false,
+                        contentType: false,
+                        cache: false,
+                        timeout: 600000,
+                        success: function() {
+                            window.location.href = redirect;
+                        }
+                    });
+
+                });
+
+            });
         </script>
 	</head>
 	<body>
 		<h2 tal:content="options/title">Create an LTI Configured Tool</h2>
-            <form id="tool_form" action="#">
+            <form id="tool_form" method="post" enctype="multipart/form-data">
                 <label>Title<input type="text" name="title" tal:attributes='value options/edit_properties/title | nothing'></label><br>
                 <label>Description<input type="textarea" name="description" rows="3" cols="50" tal:attributes='value options/edit_properties/description | nothing'></label><br>
                 <label>Consumer Key<input type="text" name="consumer_key" tal:attributes='value options/edit_properties/consumer_key | nothing'></label><br>
@@ -81,7 +101,7 @@
                 </div>
 
                 <div id="upload" style="visibility:hidden">
-                    <input type="file" accept=".xml/*"/>
+                    <input type="file" name="xml_file" accept=".xml/*"/>
                 </div>
 
                 <input type="hidden" name="MimeType" value="application/vnd.nextthought.ims.consumer.configuredtool">

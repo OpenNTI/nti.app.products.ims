@@ -79,8 +79,4 @@
 			 provides="nti.ims.lti.interfaces.IConfiguredTool"
 	 		 for="pyramid.interfaces.IRequest" />
 
-	<adapter factory=".adapters.persistent_tool_config_for_request"
-			 provides="nti.ims.lti.interfaces.IToolConfig"
-			 for="pyramid.interfaces.IRequest" />
-
 </configure>
