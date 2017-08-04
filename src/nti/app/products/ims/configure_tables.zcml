@@ -10,7 +10,7 @@
 
 	<include package="z3c.table" />
 
-<!--    <adapter factory="._table_utils.TitleColumn"
+	<adapter factory="._table_utils.TitleColumn"
              provides="z3c.table.interfaces.IColumn"
              for="* * ._table_utils.LTIToolsTable"
              name="title" />
@@ -18,7 +18,7 @@
     <adapter factory="._table_utils.DescriptionColumn"
          provides="z3c.table.interfaces.IColumn"
          for="* * ._table_utils.LTIToolsTable"
-         name="description" />-->
+         name="description" />
 
     <adapter factory="._table_utils.KeyColumn"
          provides="z3c.table.interfaces.IColumn"

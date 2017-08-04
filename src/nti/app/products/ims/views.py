@@ -6,16 +6,14 @@
 
 from __future__ import print_function, absolute_import, division
 
-from lti import tool_config
-from nti.app.products.ims._table_utils import make_specific_table, LTIToolsTable
-
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
+from lti import tool_config
+
 from lti.utils import InvalidLTIRequestError
 
-import json
 
 from zope import component
 from zope import interface
@@ -49,6 +47,9 @@ from nti.app.products.ims.interfaces import ILTIUserFactory
 from nti.app.products.ims.interfaces import ILTIRequest
 from nti.app.products.ims.interfaces import IToolProvider
 
+from nti.app.products.ims._table_utils import make_specific_table
+from nti.app.products.ims._table_utils import LTIToolsTable
+
 from nti.appserver.logon import _create_success_response
 
 from nti.appserver.policies.interfaces import INoAccountCreationEmail
@@ -61,7 +62,6 @@ from nti.externalization.interfaces import StandardExternalFields
 from nti.ims.lti.interfaces import IConfiguredTool
 from nti.ims.lti.interfaces import IConfiguredToolContainer
 from nti.ims.lti.interfaces import ITool
-from nti.ims.lti.interfaces import IToolConfig
 from nti.ims.lti.interfaces import IToolConfigFactory
 
 from nti.links import render_link
@@ -292,12 +292,12 @@ def create(context, request):
 def edit(context, request):
     properties = dict()
 
-    #properties['title'] = context.title
-    #properties['description'] = context.description
+    properties['title'] = context.title
+    properties['description'] = context.description
     properties['consumer_key'] = context.consumer_key
     properties['secret'] = context.secret
-    # properties['launch_url'] = context.config.launch_url
-    # properties['secure_launch_url'] = context.config.secure_launch_url
+    properties['launch_url'] = context.launch_url
+    properties['secure_launch_url'] = context.secure_launch_url
 
     return {'edit_properties': properties,
             'title': 'Edit an LTI Configured Tool',
@@ -315,6 +315,6 @@ def view_config(context, request):
     config = context.config
     attributes = dict()
     for attr in tool_config.VALID_ATTRIBUTES:
-        attributes[attr] = getattr(config, attr)
+        attributes[attr] = getattr(config, attr, None)
 
     return {'attrs': attributes}

@@ -9,9 +9,9 @@
 	<body>
 		<h2>LTI Tool Config</h2>
             <table>
-                <tr tal:repeat="attr options/attrs">
-                    <td tal:content="attr" />
-                    <td tal:content="options/attrs/attr" />
+                <tr tal:repeat="(key,value) options/attrs/items">
+                    <td tal:content="key" />
+                    <td tal:content="value" />
                 </tr>
             </table>
 	</body>
