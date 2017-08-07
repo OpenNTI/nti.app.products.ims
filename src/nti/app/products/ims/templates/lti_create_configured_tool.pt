@@ -9,7 +9,7 @@
             function displayForm(uploadXML){
                 if(uploadXML.value == "input"){
                     document.getElementById("input").style.visibility='visible';
-                    document.getElementById("paste").style.visibility='hidden';
+                    document.getElementById("xml_paste").style.visibility='hidden';
                     document.getElementById("xml_link").style.visibility='hidden';
                 }
                 else if(uploadXML.value == "xml_paste"){
