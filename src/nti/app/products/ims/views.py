@@ -229,6 +229,8 @@ class ConfiguredToolCreateView(AbstractAuthenticatedView, ModeledContentUploadRe
 
     def __call__(self):
         tool = self.readCreateUpdateContentObject(self.remoteUser)
+        config = _create_tool_config_from_request(self.request)
+        tool.config = config
         tools = self.get_tools()
         tools.add_tool(tool)
         msg = _('Tool created successfully')
@@ -325,6 +327,7 @@ def view_config(context, request):
 
 def _create_tool_config_from_request(request):
     parsed = read_body_as_external_object(request)
+    from IPython.core.debugger import Tracer;Tracer()()
     field_storage = parsed['xml_file']
     # Create from xml if uploaded
     if parsed['xml_file'] is not u'':
