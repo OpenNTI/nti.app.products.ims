@@ -11,16 +11,25 @@
                     document.getElementById("input").style.visibility='visible';
                     document.getElementById("xml_paste").style.visibility='hidden';
                     document.getElementById("xml_link").style.visibility='hidden';
+                    document.getElementById("input").style.display='block';
+                    document.getElementById("xml_paste").style.display='none';
+                    document.getElementById("xml_link").style.display='none';
                 }
                 else if(uploadXML.value == "xml_paste"){
                     document.getElementById("input").style.visibility='hidden';
                     document.getElementById("xml_paste").style.visibility='visible';
                     document.getElementById("xml_link").style.visibility='hidden';
+                    document.getElementById("input").style.display='none';
+                    document.getElementById("xml_paste").style.display='block';
+                    document.getElementById("xml_link").style.display='none';
                 }
                 else if(uploadXML.value == "xml_link") {
                     document.getElementById("input").style.visibility='hidden';
                     document.getElementById("xml_paste").style.visibility='hidden';
                     document.getElementById("xml_link").style.visibility='visible';
+                    document.getElementById("input").style.display='none';
+                    document.getElementById("xml_paste").style.display='none';
+                    document.getElementById("xml_link").style.display='block';
                 } else {
                 }
 
@@ -77,19 +86,19 @@
                 <label>Paste XML Tool Config<input value="xml_paste" type="radio" name="formselector" onclick="displayForm(this)"></label>
                 <label>XML Tool Config file URL<input value="xml_link" type="radio" name="formselector" onclick="displayForm(this)"></label>
                 <br><br>
-                <div id="input" style="visibility:visible">
+                <div id="input" style="visibility:visible; display:block">
                     <label>Title<input type="text" name="title" tal:attributes='value options/tool_title | nothing'></label><br>
                     <label>Description<input type="text" name="description" tal:attributes='value context/description | nothing'></label><br>
                     <label>Launch URL<input type="text" name="launch_url" tal:attributes='value context/launch_url | nothing'></label><br>
                     <label>Secure Launch URL<input type="text" name="secure_launch_url" tal:attributes='value context/secure_launch_url | nothing'></label>
                 </div>
 
-                <div id="xml_paste" style="visibility:hidden">
+                <div id="xml_paste" style="visibility:hidden; display:none">
                     <p>Paste XML Content Here</p>
-                    <textarea cols="25" rows="5" name="xml_paste"></textarea>
+                    <textarea cols="50" rows="15" name="xml_paste"></textarea>
                 </div>
 
-                <div id="xml_link" style="visibility:hidden">
+                <div id="xml_link" style="visibility:hidden; display:none">
                     <label>Tool Config URL<input type="text" name="xml_link" /></label>
                 </div>
 
