@@ -301,7 +301,8 @@ def edit(context, request):
     return {'title': 'Edit an LTI Configured Tool',
             'extension': '@@edit',
             'method': 'PUT',
-            'redirect': request.resource_url(context.__parent__, '@@list')}
+            'redirect': request.resource_url(context.__parent__, '@@list'),
+            'tool_title': context.title}  # Has to be specified or create will fill with an object
 
 
 @view_config(route_name='objects.generic.traversal',
