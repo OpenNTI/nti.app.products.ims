@@ -11,7 +11,6 @@ logger = __import__('logging').getLogger(__name__)
 
 from lti import InvalidLTIRequestError
 
-from pyramid.interfaces import IRequest
 
 from zope import component
 from zope import interface
@@ -22,10 +21,6 @@ from nti.app.products.ims.interfaces import ILTIRequest
 from nti.app.products.ims.interfaces import ILTIUserFactory
 
 from nti.ims.lti import adapt_accounting_for_consumer
-
-from nti.ims.lti.consumer import PersistentToolConfig
-
-from nti.ims.lti.interfaces import IToolConfig
 
 
 @interface.implementer(ILTIUserFactory)
