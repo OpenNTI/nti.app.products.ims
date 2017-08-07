@@ -329,6 +329,7 @@ def _create_tool_config_from_xml(xml_file):
 
 
 def _create_tool_config_from_request(request):
+    from IPython.core.debugger import Tracer;Tracer()()
     parsed = read_body_as_external_object(request)
     config_type = parsed['formselector'].encode('ascii')
     # Create from xml if uploaded

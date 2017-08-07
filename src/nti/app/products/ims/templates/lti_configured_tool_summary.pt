@@ -17,6 +17,14 @@
                 xhr.send();
             }
         </script>
+        <style type="text/css">
+            table {
+                border-collapse: collapse;
+            }
+            table, td, th {
+                border: 1px solid black;
+            }
+        </style>
 	</head>
 	<body>
 		<h2>Configured LTI Tool List</h2>
