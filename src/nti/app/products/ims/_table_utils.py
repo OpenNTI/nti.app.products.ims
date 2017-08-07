@@ -10,29 +10,10 @@ logger = __import__('logging').getLogger(__name__)
 from z3c.table import column
 from z3c.table import table
 
-from zope.publisher.interfaces.browser import IBrowserRequest
-
-from nti.app.authentication import get_remote_user
-
-from nti.dataserver import authorization as nauth
-
-from nti.dataserver.authorization_acl import has_permission
-
-from nti.externalization.oids import to_external_ntiid_oid
-
 
 class LTIToolsTable(table.Table):
 
     batchSize = 25
-    startBatchingAt = 25
-    sortOn = None
-
-    def batchRows(self):
-        try:
-            super(LTIToolsTable, self).batchRows()
-        except IndexError:
-            self.batchStart = len(self.rows) - self.getBatchSize()
-            super(LTIToolsTable, self).batchRows()
 
 
 class TitleColumn(column.Column):
@@ -104,16 +85,3 @@ class ToolConfigColumn(column.Column):
                   </form>
                """ \
                % (action_url, self.buttonTitle)
-
-def make_specific_table(tableClassName, container, request):
-
-    the_table = tableClassName(container, IBrowserRequest(request))
-
-    try:
-        the_table.update()
-    except IndexError:
-        the_table.batchStart = len(the_table.rows) - the_table.getBatchSize()
-        the_table.update()
-
-    return the_table
-

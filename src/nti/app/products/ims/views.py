@@ -14,6 +14,7 @@ from lti import tool_config
 
 from lti.utils import InvalidLTIRequestError
 
+from xml.etree import ElementTree as ET
 
 from zope import component
 from zope import interface
@@ -22,6 +23,8 @@ from zope.location.interfaces import IContained
 from zope.location.interfaces import LocationError
 
 from zope.location.location import LocationProxy
+
+from zope.publisher.interfaces.browser import IBrowserRequest
 
 from zope.traversing.interfaces import IPathAdapter
 from zope.traversing.interfaces import ITraversable
@@ -32,6 +35,8 @@ from pyramid.view import view_config
 
 from nti.app.base.abstract_views import AbstractView
 from nti.app.base.abstract_views import AbstractAuthenticatedView
+
+from nti.app.externalization.internalization import read_body_as_external_object
 
 from nti.app.externalization.view_mixins import ModeledContentUploadRequestUtilsMixin
 
@@ -47,17 +52,20 @@ from nti.app.products.ims.interfaces import ILTIUserFactory
 from nti.app.products.ims.interfaces import ILTIRequest
 from nti.app.products.ims.interfaces import IToolProvider
 
-from nti.app.products.ims._table_utils import make_specific_table
 from nti.app.products.ims._table_utils import LTIToolsTable
 
 from nti.appserver.logon import _create_success_response
 
 from nti.appserver.policies.interfaces import INoAccountCreationEmail
 
+from nti.appserver.ugd_edit_views import UGDPutView
+
 from nti.dataserver.interfaces import ILinkExternalHrefOnly
 
 from nti.externalization.interfaces import LocatedExternalDict
 from nti.externalization.interfaces import StandardExternalFields
+
+from nti.ims.lti.consumer import PersistentToolConfig
 
 from nti.ims.lti.interfaces import IConfiguredTool
 from nti.ims.lti.interfaces import IConfiguredToolContainer
@@ -248,18 +256,12 @@ class ConfiguredToolDeleteView(AbstractView):
              request_method='PUT',
              context=IConfiguredTool,
              name='edit')
-class ConfiguredToolEditView(AbstractAuthenticatedView, ModeledContentUploadRequestUtilsMixin):
-
-    def get_tools(self):
-        return self.context.__parent__
+class ConfiguredToolEditView(UGDPutView):
 
     def __call__(self):
-        name = self.context.__name__
-        tool = self.readCreateUpdateContentObject(self.remoteUser)
-        tool.__name__ = name
-        tools = self.get_tools()
-        tools.edit_tool(tool)
-
+        tool = super(ConfiguredToolEditView, self).__call__()
+        config = _create_tool_config_from_request(self.request)
+        tool.config = config
         return hexc.HTTPOk("Successfully edited tool")
 
 @view_config(route_name='objects.generic.traversal',
@@ -268,7 +270,8 @@ class ConfiguredToolEditView(AbstractAuthenticatedView, ModeledContentUploadRequ
              context=IConfiguredToolContainer,
              name='list')
 def list_tools(context, request):
-    tool_table = make_specific_table(LTIToolsTable, context, request)
+    tool_table = LTIToolsTable(context, IBrowserRequest(request))
+    tool_table.update()
     return {'table': tool_table}
 
 
@@ -318,3 +321,20 @@ def view_config(context, request):
         attributes[attr] = getattr(config, attr, None)
 
     return {'attrs': attributes}
+
+
+def _create_tool_config_from_request(request):
+    parsed = read_body_as_external_object(request)
+    field_storage = parsed['xml_file']
+    # Create from xml if uploaded
+    if parsed['xml_file'] is not u'':
+
+        file = field_storage.file
+        xml_tree = ET.parse(file)
+        root = xml_tree.getroot()
+        xml_string = ET.tostring(root)
+
+        pconfig = PersistentToolConfig(dict())
+        pconfig.process_xml(xml_string)
+        return pconfig
+    return PersistentToolConfig(parsed)
