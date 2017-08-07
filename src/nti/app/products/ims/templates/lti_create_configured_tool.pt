@@ -9,17 +9,17 @@
             function displayForm(uploadXML){
                 if(uploadXML.value == "input"){
                     document.getElementById("input").style.visibility='visible';
-                    document.getElementById("upload").style.visibility='hidden';
+                    document.getElementById("paste").style.visibility='hidden';
                     document.getElementById("link").style.visibility='hidden';
                 }
                 else if(uploadXML.value == "file"){
                     document.getElementById("input").style.visibility='hidden';
-                    document.getElementById("upload").style.visibility='visible';
+                    document.getElementById("paste").style.visibility='visible';
                     document.getElementById("link").style.visibility='hidden';
                 }
                 else if(uploadXML.value == "link") {
                     document.getElementById("input").style.visibility='hidden';
-                    document.getElementById("upload").style.visibility='hidden';
+                    document.getElementById("paste").style.visibility='hidden';
                     document.getElementById("link").style.visibility='visible';
                 } else {
                 }
@@ -70,22 +70,23 @@
 	<body>
 		<h2 tal:content="options/title">Create an LTI Configured Tool</h2>
             <form id="tool_form" method="post" enctype="multipart/form-data">
-                <label>Consumer Key<input type="text" name="consumer_key" tal:attributes='value options/edit_properties/consumer_key | nothing'></label><br>
-                <label>Secret<input type="password" name="secret" tal:attributes='value options/edit_properties/secret | nothing'></label><br>
+                <label>Consumer Key<input type="text" name="consumer_key" tal:attributes='value context/consumer_key | nothing'></label><br>
+                <label>Secret<input type="password" name="secret" tal:attributes='value context/secret | nothing'></label><br>
                 <br>
                 <label>Input Tool Config parameters<input checked="checked" value="input" type="radio" name="formselector" onclick="displayForm(this)"></label>
-                <label>Upload XML Tool Config<input value="file" type="radio" name="formselector" onclick="displayForm(this)"></label>
-                <label>Tool Config URL<input value="link" type="radio" name="formselector" onclick="displayForm(this)"></label>
+                <label>Paste XML Tool Config<input value="file" type="radio" name="formselector" onclick="displayForm(this)"></label>
+                <label>XML Tool Config file URL<input value="link" type="radio" name="formselector" onclick="displayForm(this)"></label>
                 <br><br>
                 <div id="input" style="visibility:visible">
-                    <label>Title<input type="text" name="title" tal:attributes='value options/edit_properties/title | nothing'></label><br>
-                    <label>Description<input type="text" name="description" tal:attributes='value options/edit_properties/description | nothing'></label><br>
-                    <label>Launch URL<input type="text" name="launch_url" tal:attributes='value options/edit_properties/launch_url | nothing'></label><br>
-                    <label>Secure Launch URL<input type="text" name="secure_launch_url" tal:attributes='value options/edit_properties/secure_launch_url | nothing'></label>
+                    <label>Title<input type="text" name="title" tal:attributes='value context/title | nothing'></label><br>
+                    <label>Description<input type="text" name="description" tal:attributes='value context/description | nothing'></label><br>
+                    <label>Launch URL<input type="text" name="launch_url" tal:attributes='value context/launch_url | nothing'></label><br>
+                    <label>Secure Launch URL<input type="text" name="secure_launch_url" tal:attributes='value context/secure_launch_url | nothing'></label>
                 </div>
 
-                <div id="upload" style="visibility:hidden">
-                    <input type="file" name="xml_file" accept=".xml/*"/>
+                <div id="paste" style="visibility:hidden">
+                    <p>Paste XML Content Here</p>
+                    <textarea cols="25" rows="5" name="xml_paste"></textarea>
                 </div>
 
                 <div id="link" style="visibility:hidden">

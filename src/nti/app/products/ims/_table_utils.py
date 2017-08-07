@@ -24,32 +24,8 @@ class TitleColumn(column.Column):
         return tool.title
 
 
-class DescriptionColumn(column.Column):
-    weight = 2
-    header = u'Description'
-
-    def renderCell(self, tool):
-        return tool.description
-
-
-class KeyColumn(column.Column):
-    weight = 3
-    header = u'Consumer Key'
-
-    def renderCell(self, tool):
-        return tool.consumer_key
-
-
-class SecretColumn(column.Column):
-    weight = 4
-    header = u'Secret'
-
-    def renderCell(self, tool):
-        return tool.secret
-
-
 class DeleteColumn(column.Column):
-    weight = 6
+    weight = 3
     buttonTitle = 'DELETE'
 
     def renderCell(self, item):
@@ -60,7 +36,7 @@ class DeleteColumn(column.Column):
 
 
 class EditColumn(column.Column):
-    weight = 5
+    weight = 2
     buttonTitle = 'EDIT'
 
     def renderCell(self, item):
@@ -74,7 +50,7 @@ class EditColumn(column.Column):
 
 
 class ToolConfigColumn(column.Column):
-    weight = 7
+    weight = 4
     buttonTitle = 'Tool Config'
 
     def renderCell(self, item):

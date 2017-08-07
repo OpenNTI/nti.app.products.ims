@@ -14,6 +14,12 @@ from lti import tool_config
 
 from lti.utils import InvalidLTIRequestError
 
+from pyramid import httpexceptions as hexc
+
+from pyramid.view import view_config
+
+import requests
+
 from xml.etree import ElementTree as ET
 
 from zope import component
@@ -28,10 +34,6 @@ from zope.publisher.interfaces.browser import IBrowserRequest
 
 from zope.traversing.interfaces import IPathAdapter
 from zope.traversing.interfaces import ITraversable
-
-from pyramid import httpexceptions as hexc
-
-from pyramid.view import view_config
 
 from nti.app.base.abstract_views import AbstractView
 from nti.app.base.abstract_views import AbstractAuthenticatedView
@@ -262,9 +264,9 @@ class ConfiguredToolEditView(UGDPutView):
 
     def __call__(self):
         tool = super(ConfiguredToolEditView, self).__call__()
-        config = _create_tool_config_from_request(self.request)
-        tool.config = config
+        tool.config = _create_tool_config_from_request(self.request)
         return hexc.HTTPOk("Successfully edited tool")
+
 
 @view_config(route_name='objects.generic.traversal',
              renderer='templates/lti_configured_tool_summary.pt',
@@ -295,17 +297,8 @@ def create(context, request):
              name='edit_view',
              context=IConfiguredTool)
 def edit(context, request):
-    properties = dict()
 
-    properties['title'] = context.title
-    properties['description'] = context.description
-    properties['consumer_key'] = context.consumer_key
-    properties['secret'] = context.secret
-    properties['launch_url'] = context.launch_url
-    properties['secure_launch_url'] = context.secure_launch_url
-
-    return {'edit_properties': properties,
-            'title': 'Edit an LTI Configured Tool',
+    return {'title': 'Edit an LTI Configured Tool',
             'extension': '@@edit',
             'method': 'PUT',
             'redirect': request.resource_url(context.__parent__, '@@list')}
@@ -325,19 +318,30 @@ def view_config(context, request):
     return {'attrs': attributes}
 
 
+def _create_tool_config_from_xml(xml_file):
+    xml_tree = ET.parse(xml_file)
+    root = xml_tree.getroot()
+    xml_string = ET.tostring(root)
+
+    pconfig = PersistentToolConfig(dict())
+    pconfig.process_xml(xml_string)
+    return pconfig
+
+
 def _create_tool_config_from_request(request):
     parsed = read_body_as_external_object(request)
-    from IPython.core.debugger import Tracer;Tracer()()
-    field_storage = parsed['xml_file']
+    config_type = parsed['formselector'].encode('ascii')
     # Create from xml if uploaded
-    if parsed['xml_file'] is not u'':
+    if config_type == 'xml_paste':
+        config = PersistentToolConfig(dict())
+        config.process_xml(parsed[config_type])
+    # Retrieve and create from URL if provided
+    elif config_type == 'xml_link':
+        response = requests.get(parsed[config_type])
+        # TODO check this works
+        config = _create_tool_config_from_xml(response)
+    # Manual creation
+    else:
+        config = PersistentToolConfig(parsed)
 
-        file = field_storage.file
-        xml_tree = ET.parse(file)
-        root = xml_tree.getroot()
-        xml_string = ET.tostring(root)
-
-        pconfig = PersistentToolConfig(dict())
-        pconfig.process_xml(xml_string)
-        return pconfig
-    return PersistentToolConfig(parsed)
+    return config
