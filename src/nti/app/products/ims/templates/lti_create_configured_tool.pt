@@ -36,9 +36,9 @@
             }
         </script>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-        <script tal:content="string:var ext='${options/extension}';"></script>
         <script tal:content="string:var method='${options/method}';"></script>
         <script tal:content="string:var redirect='${options/redirect}';"></script>
+        <script tal:content="string:var url='${options/url}';"></script>
         <script>
             $(document).ready(function () {
 
@@ -56,7 +56,7 @@
                     $.ajax({
                         type: method,
                         enctype: 'multipart/form-data',
-                        url: ext,
+                        url: url,
                         data: data,
                         processData: false,
                         contentType: false,

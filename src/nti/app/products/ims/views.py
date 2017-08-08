@@ -226,7 +226,6 @@ class ConfiguredToolsGetView(AbstractAuthenticatedView):
              renderer='rest',
              request_method='POST',
              context=IConfiguredToolContainer,
-             name='create',
              permission=nauth.ACT_CREATE)
 class ConfiguredToolCreateView(AbstractAuthenticatedView, ModeledContentUploadRequestUtilsMixin):
 
@@ -247,7 +246,6 @@ class ConfiguredToolCreateView(AbstractAuthenticatedView, ModeledContentUploadRe
              renderer='rest',
              request_method='DELETE',
              context=IConfiguredTool,
-             name='delete',
              permission=nauth.ACT_DELETE)
 class ConfiguredToolDeleteView(AbstractView):
 
@@ -264,7 +262,6 @@ class ConfiguredToolDeleteView(AbstractView):
              renderer='rest',
              request_method='PUT',
              context=IConfiguredTool,
-             name='edit',
              permission=nauth.ACT_UPDATE)
 class ConfiguredToolEditView(UGDPutView):
 
@@ -294,7 +291,7 @@ def list_tools(context, request):
              permission=nauth.ACT_CREATE)
 def create(context, request):
     return {'title': 'Create an LTI Configured Tool',
-            'extension': '@@create',
+            'url': request.resource_url(context),
             'method': 'POST',
             'redirect': request.resource_url(context, '@@list')}
 
@@ -308,8 +305,8 @@ def create(context, request):
 def edit(context, request):
 
     return {'title': 'Edit an LTI Configured Tool',
-            'extension': '@@edit',
             'method': 'PUT',
+            'url': request.resource_url(context),
             'redirect': request.resource_url(context.__parent__, '@@list'),
             'tool_title': context.title}  # Has to be specified or create will fill with an object name
 

@@ -30,7 +30,7 @@ class DeleteColumn(column.Column):
 
     def renderCell(self, item):
 
-        action_url = self.request.resource_url(item, '@@delete')
+        action_url = self.request.resource_url(item)
         return """<button onclick=deleteTool('%s')>%s</button>""" \
                % (action_url, self.buttonTitle)
 
