@@ -62,6 +62,8 @@ from nti.appserver.policies.interfaces import INoAccountCreationEmail
 
 from nti.appserver.ugd_edit_views import UGDPutView
 
+from nti.dataserver import authorization as nauth
+
 from nti.dataserver.interfaces import ILinkExternalHrefOnly
 
 from nti.externalization.interfaces import LocatedExternalDict
@@ -204,7 +206,8 @@ class LaunchProviderView(AbstractView):
 @view_config(route_name='objects.generic.traversal',
              renderer='rest',
              request_method='GET',
-             context=IConfiguredToolContainer)
+             context=IConfiguredToolContainer,
+             permission=nauth.ACT_READ)
 class ConfiguredToolsGetView(AbstractAuthenticatedView):
 
     def get_tools(self):
@@ -223,7 +226,8 @@ class ConfiguredToolsGetView(AbstractAuthenticatedView):
              renderer='rest',
              request_method='POST',
              context=IConfiguredToolContainer,
-             name='create')
+             name='create',
+             permission=nauth.ACT_CREATE)
 class ConfiguredToolCreateView(AbstractAuthenticatedView, ModeledContentUploadRequestUtilsMixin):
 
     def get_tools(self):
@@ -243,7 +247,8 @@ class ConfiguredToolCreateView(AbstractAuthenticatedView, ModeledContentUploadRe
              renderer='rest',
              request_method='DELETE',
              context=IConfiguredTool,
-             name='delete')
+             name='delete',
+             permission=nauth.ACT_DELETE)
 class ConfiguredToolDeleteView(AbstractView):
 
     def get_tools(self):
@@ -259,7 +264,8 @@ class ConfiguredToolDeleteView(AbstractView):
              renderer='rest',
              request_method='PUT',
              context=IConfiguredTool,
-             name='edit')
+             name='edit',
+             permission=nauth.ACT_UPDATE)
 class ConfiguredToolEditView(UGDPutView):
 
     def __call__(self):
@@ -272,7 +278,8 @@ class ConfiguredToolEditView(UGDPutView):
              renderer='templates/lti_configured_tool_summary.pt',
              request_method='GET',
              context=IConfiguredToolContainer,
-             name='list')
+             name='list',
+             permission=nauth.ACT_READ)
 def list_tools(context, request):
     tool_table = LTIToolsTable(context, IBrowserRequest(request))
     tool_table.update()
@@ -283,7 +290,8 @@ def list_tools(context, request):
              renderer='templates/lti_create_configured_tool.pt',
              request_method='GET',
              name='create_view',
-             context=IConfiguredToolContainer)
+             context=IConfiguredToolContainer,
+             permission=nauth.ACT_CREATE)
 def create(context, request):
     return {'title': 'Create an LTI Configured Tool',
             'extension': '@@create',
@@ -295,21 +303,23 @@ def create(context, request):
              renderer='templates/lti_create_configured_tool.pt',
              request_method='GET',
              name='edit_view',
-             context=IConfiguredTool)
+             context=IConfiguredTool,
+             permission=nauth.ACT_UPDATE)
 def edit(context, request):
 
     return {'title': 'Edit an LTI Configured Tool',
             'extension': '@@edit',
             'method': 'PUT',
             'redirect': request.resource_url(context.__parent__, '@@list'),
-            'tool_title': context.title}  # Has to be specified or create will fill with an object
+            'tool_title': context.title}  # Has to be specified or create will fill with an object name
 
 
 @view_config(route_name='objects.generic.traversal',
              renderer='templates/lti_tool_config.pt',
              request_method='GET',
              name='tool_config_view',
-             context=IConfiguredTool)
+             context=IConfiguredTool,
+             permission=nauth.ACT_READ)
 def view_config(context, request):
     config = context.config
     attributes = dict()
@@ -319,30 +329,24 @@ def view_config(context, request):
     return {'attrs': attributes}
 
 
-def _create_tool_config_from_xml(xml_file):
-    xml_tree = ET.parse(xml_file)
-    root = xml_tree.getroot()
-    xml_string = ET.tostring(root)
-
-    pconfig = PersistentToolConfig(dict())
-    pconfig.process_xml(xml_string)
-    return pconfig
-
-
 def _create_tool_config_from_request(request):
     parsed = read_body_as_external_object(request)
     config_type = parsed['formselector'].encode('ascii')
+
     # Create from xml if uploaded
     if config_type == 'xml_paste':
-        config = PersistentToolConfig(dict())
-        config.process_xml(parsed[config_type])
+        config = PersistentToolConfig.create_from_xml(parsed[config_type])
+
     # Retrieve and create from URL if provided
     elif config_type == 'xml_link':
         response = requests.get(parsed[config_type])
-        # TODO check this works
-        config = _create_tool_config_from_xml(response)
+        xml_tree = ET.parse(response)
+        root = xml_tree.getroot()
+        xml_string = ET.tostring(root)
+        config = PersistentToolConfig.create_from_xml(xml_string)
+
     # Manual creation
     else:
-        config = PersistentToolConfig(parsed)
+        config = PersistentToolConfig(**parsed)
 
     return config
