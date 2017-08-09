@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
 The module provides a basic lti launch tool implementation that allows
 a tool consumer to launch the NT platform.  While this serves as a good

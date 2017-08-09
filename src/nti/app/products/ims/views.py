@@ -5,7 +5,6 @@
 """
 
 from __future__ import print_function, absolute_import, division
-
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
@@ -13,10 +12,6 @@ logger = __import__('logging').getLogger(__name__)
 from lti import tool_config
 
 from lti.utils import InvalidLTIRequestError
-
-from pyramid import httpexceptions as hexc
-
-from pyramid.view import view_config
 
 import requests
 
@@ -34,6 +29,10 @@ from zope.publisher.interfaces.browser import IBrowserRequest
 
 from zope.traversing.interfaces import IPathAdapter
 from zope.traversing.interfaces import ITraversable
+
+from pyramid import httpexceptions as hexc
+
+from pyramid.view import view_config
 
 from nti.app.base.abstract_views import AbstractView
 from nti.app.base.abstract_views import AbstractAuthenticatedView
@@ -71,10 +70,10 @@ from nti.externalization.interfaces import StandardExternalFields
 
 from nti.ims.lti.consumer import PersistentToolConfig
 
-from nti.ims.lti.interfaces import IConfiguredTool
-from nti.ims.lti.interfaces import IConfiguredToolContainer
 from nti.ims.lti.interfaces import ITool
+from nti.ims.lti.interfaces import IConfiguredTool
 from nti.ims.lti.interfaces import IToolConfigFactory
+from nti.ims.lti.interfaces import IConfiguredToolContainer
 
 from nti.links import render_link
 
@@ -227,7 +226,8 @@ class ConfiguredToolsGetView(AbstractAuthenticatedView):
              request_method='POST',
              context=IConfiguredToolContainer,
              permission=nauth.ACT_CREATE)
-class ConfiguredToolCreateView(AbstractAuthenticatedView, ModeledContentUploadRequestUtilsMixin):
+class ConfiguredToolCreateView(AbstractAuthenticatedView,
+                               ModeledContentUploadRequestUtilsMixin):
 
     def get_tools(self):
         return self.context
@@ -238,7 +238,7 @@ class ConfiguredToolCreateView(AbstractAuthenticatedView, ModeledContentUploadRe
         tool.config = config
         tools = self.get_tools()
         tools.add_tool(tool)
-        msg = _('Tool created successfully')
+        msg = _(u'Tool created successfully')
         return hexc.HTTPCreated(msg)
 
 
@@ -247,7 +247,7 @@ class ConfiguredToolCreateView(AbstractAuthenticatedView, ModeledContentUploadRe
              request_method='DELETE',
              context=IConfiguredTool,
              permission=nauth.ACT_DELETE)
-class ConfiguredToolDeleteView(AbstractView):
+class ConfiguredToolDeleteView(AbstractAuthenticatedView):
 
     def get_tools(self):
         return self.context.__parent__
@@ -317,23 +317,20 @@ def edit(context, request):
              name='tool_config_view',
              context=IConfiguredTool,
              permission=nauth.ACT_READ)
-def view_config(context, request):
+def view_config(context, unused_request):
     config = context.config
     attributes = dict()
     for attr in tool_config.VALID_ATTRIBUTES:
         attributes[attr] = getattr(config, attr, None)
-
     return {'attrs': attributes}
 
 
 def _create_tool_config_from_request(request):
     parsed = read_body_as_external_object(request)
     config_type = parsed['formselector'].encode('ascii')
-
     # Create from xml if uploaded
     if config_type == 'xml_paste':
         config = PersistentToolConfig.create_from_xml(parsed[config_type])
-
     # Retrieve and create from URL if provided
     elif config_type == 'xml_link':
         response = requests.get(parsed[config_type])
@@ -341,9 +338,7 @@ def _create_tool_config_from_request(request):
         root = xml_tree.getroot()
         xml_string = ET.tostring(root)
         config = PersistentToolConfig.create_from_xml(xml_string)
-
     # Manual creation
     else:
         config = PersistentToolConfig(**parsed)
-
     return config

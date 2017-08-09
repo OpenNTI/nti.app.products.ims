@@ -11,7 +11,6 @@ logger = __import__('logging').getLogger(__name__)
 
 from lti import InvalidLTIRequestError
 
-
 from zope import component
 from zope import interface
 
@@ -30,7 +29,7 @@ def user_factory_for_request(request):
     Parses through the launch params of an lti request
     to find a user factory for the appropriate site package
     """
-    user_factory = adapt_accounting_for_consumer(request, request, 
+    user_factory = adapt_accounting_for_consumer(request, request,
                                                  ILTIUserFactory)
     if user_factory is None:
         msg = _(u'No user factory was found for this consumer tool')
