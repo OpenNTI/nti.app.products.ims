@@ -10,7 +10,17 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
+from lti import tool_config
+
 from lti.utils import InvalidLTIRequestError
+
+from pyramid import httpexceptions as hexc
+
+from pyramid.view import view_config
+
+import requests
+
+from xml.etree import ElementTree as ET
 
 from zope import component
 from zope import interface
@@ -20,14 +30,19 @@ from zope.location.interfaces import LocationError
 
 from zope.location.location import LocationProxy
 
+from zope.publisher.interfaces.browser import IBrowserRequest
+
 from zope.traversing.interfaces import IPathAdapter
 from zope.traversing.interfaces import ITraversable
 
-from pyramid import httpexceptions as hexc
-
-from pyramid.view import view_config
-
 from nti.app.base.abstract_views import AbstractView
+from nti.app.base.abstract_views import AbstractAuthenticatedView
+
+from nti.app.externalization.internalization import read_body_as_external_object
+
+from nti.app.externalization.view_mixins import ModeledContentUploadRequestUtilsMixin
+
+from nti.app.products.ims import MessageFactory as _
 
 from nti.app.products.ims import IMS
 from nti.app.products.ims import LTI
@@ -39,18 +54,35 @@ from nti.app.products.ims.interfaces import ILTIUserFactory
 from nti.app.products.ims.interfaces import ILTIRequest
 from nti.app.products.ims.interfaces import IToolProvider
 
+from nti.app.products.ims._table_utils import LTIToolsTable
+
 from nti.appserver.logon import _create_success_response
 
 from nti.appserver.policies.interfaces import INoAccountCreationEmail
 
+from nti.appserver.ugd_edit_views import UGDPutView
+
+from nti.dataserver import authorization as nauth
+
 from nti.dataserver.interfaces import ILinkExternalHrefOnly
 
+from nti.externalization.interfaces import LocatedExternalDict
+from nti.externalization.interfaces import StandardExternalFields
+
+from nti.ims.lti.consumer import PersistentToolConfig
+
+from nti.ims.lti.interfaces import IConfiguredTool
+from nti.ims.lti.interfaces import IConfiguredToolContainer
 from nti.ims.lti.interfaces import ITool
 from nti.ims.lti.interfaces import IToolConfigFactory
 
 from nti.links import render_link
 
 from nti.links.links import Link
+
+ITEMS = StandardExternalFields.ITEMS
+TOTAL = StandardExternalFields.TOTAL
+ITEM_COUNT = StandardExternalFields.ITEM_COUNT
 
 
 @interface.implementer(IPathAdapter, IContained)
@@ -169,3 +201,149 @@ class LaunchProviderView(AbstractView):
             user_id = None
         redirect_url = provider.tool_url
         return _create_success_response(self.request, user_id, redirect_url)
+
+
+@view_config(route_name='objects.generic.traversal',
+             renderer='rest',
+             request_method='GET',
+             context=IConfiguredToolContainer,
+             permission=nauth.ACT_READ)
+class ConfiguredToolsGetView(AbstractAuthenticatedView):
+
+    def get_tools(self):
+        return self.context
+
+    def __call__(self):
+        tools = self.get_tools()
+        result = LocatedExternalDict()
+        items = [tool for tool in tools.values()]
+        result[ITEMS] = items
+        result[TOTAL] = result[ITEM_COUNT] = len(items)
+        return result
+
+
+@view_config(route_name='objects.generic.traversal',
+             renderer='rest',
+             request_method='POST',
+             context=IConfiguredToolContainer,
+             permission=nauth.ACT_CREATE)
+class ConfiguredToolCreateView(AbstractAuthenticatedView, ModeledContentUploadRequestUtilsMixin):
+
+    def get_tools(self):
+        return self.context
+
+    def __call__(self):
+        tool = self.readCreateUpdateContentObject(self.remoteUser)
+        config = _create_tool_config_from_request(self.request)
+        tool.config = config
+        tools = self.get_tools()
+        tools.add_tool(tool)
+        msg = _('Tool created successfully')
+        return hexc.HTTPCreated(msg)
+
+
+@view_config(route_name='objects.generic.traversal',
+             renderer='rest',
+             request_method='DELETE',
+             context=IConfiguredTool,
+             permission=nauth.ACT_DELETE)
+class ConfiguredToolDeleteView(AbstractView):
+
+    def get_tools(self):
+        return self.context.__parent__
+
+    def __call__(self):
+        tools = self.get_tools()
+        tools.delete_tool(self.context)
+        return hexc.HTTPNoContent()
+
+
+@view_config(route_name='objects.generic.traversal',
+             renderer='rest',
+             request_method='PUT',
+             context=IConfiguredTool,
+             permission=nauth.ACT_UPDATE)
+class ConfiguredToolEditView(UGDPutView):
+
+    def __call__(self):
+        tool = super(ConfiguredToolEditView, self).__call__()
+        tool.config = _create_tool_config_from_request(self.request)
+        return hexc.HTTPOk("Successfully edited tool")
+
+
+@view_config(route_name='objects.generic.traversal',
+             renderer='templates/lti_configured_tool_summary.pt',
+             request_method='GET',
+             context=IConfiguredToolContainer,
+             name='list',
+             permission=nauth.ACT_READ)
+def list_tools(context, request):
+    tool_table = LTIToolsTable(context, IBrowserRequest(request))
+    tool_table.update()
+    return {'table': tool_table}
+
+
+@view_config(route_name='objects.generic.traversal',
+             renderer='templates/lti_create_configured_tool.pt',
+             request_method='GET',
+             name='create_view',
+             context=IConfiguredToolContainer,
+             permission=nauth.ACT_CREATE)
+def create(context, request):
+    return {'title': 'Create an LTI Configured Tool',
+            'url': request.resource_url(context),
+            'method': 'POST',
+            'redirect': request.resource_url(context, '@@list')}
+
+
+@view_config(route_name='objects.generic.traversal',
+             renderer='templates/lti_create_configured_tool.pt',
+             request_method='GET',
+             name='edit_view',
+             context=IConfiguredTool,
+             permission=nauth.ACT_UPDATE)
+def edit(context, request):
+
+    return {'title': 'Edit an LTI Configured Tool',
+            'method': 'PUT',
+            'url': request.resource_url(context),
+            'redirect': request.resource_url(context.__parent__, '@@list'),
+            'tool_title': context.title}  # Has to be specified or create will fill with an object name
+
+
+@view_config(route_name='objects.generic.traversal',
+             renderer='templates/lti_tool_config.pt',
+             request_method='GET',
+             name='tool_config_view',
+             context=IConfiguredTool,
+             permission=nauth.ACT_READ)
+def view_config(context, request):
+    config = context.config
+    attributes = dict()
+    for attr in tool_config.VALID_ATTRIBUTES:
+        attributes[attr] = getattr(config, attr, None)
+
+    return {'attrs': attributes}
+
+
+def _create_tool_config_from_request(request):
+    parsed = read_body_as_external_object(request)
+    config_type = parsed['formselector'].encode('ascii')
+
+    # Create from xml if uploaded
+    if config_type == 'xml_paste':
+        config = PersistentToolConfig.create_from_xml(parsed[config_type])
+
+    # Retrieve and create from URL if provided
+    elif config_type == 'xml_link':
+        response = requests.get(parsed[config_type])
+        xml_tree = ET.parse(response)
+        root = xml_tree.getroot()
+        xml_string = ET.tostring(root)
+        config = PersistentToolConfig.create_from_xml(xml_string)
+
+    # Manual creation
+    else:
+        config = PersistentToolConfig(**parsed)
+
+    return config

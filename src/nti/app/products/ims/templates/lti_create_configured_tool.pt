@@ -1,0 +1,113 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	  xmlns:tal="http://xml.zope.org/namespaces/tal">
+    <head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<title tal:content="options/title">Create an LTI Configured Tool</title>
+        <script type="text/javascript">
+            function displayForm(uploadXML){
+                if(uploadXML.value == "input"){
+                    document.getElementById("input").style.visibility='visible';
+                    document.getElementById("xml_paste").style.visibility='hidden';
+                    document.getElementById("xml_link").style.visibility='hidden';
+                    document.getElementById("input").style.display='block';
+                    document.getElementById("xml_paste").style.display='none';
+                    document.getElementById("xml_link").style.display='none';
+                }
+                else if(uploadXML.value == "xml_paste"){
+                    document.getElementById("input").style.visibility='hidden';
+                    document.getElementById("xml_paste").style.visibility='visible';
+                    document.getElementById("xml_link").style.visibility='hidden';
+                    document.getElementById("input").style.display='none';
+                    document.getElementById("xml_paste").style.display='block';
+                    document.getElementById("xml_link").style.display='none';
+                }
+                else if(uploadXML.value == "xml_link") {
+                    document.getElementById("input").style.visibility='hidden';
+                    document.getElementById("xml_paste").style.visibility='hidden';
+                    document.getElementById("xml_link").style.visibility='visible';
+                    document.getElementById("input").style.display='none';
+                    document.getElementById("xml_paste").style.display='none';
+                    document.getElementById("xml_link").style.display='block';
+                } else {
+                }
+
+            }
+        </script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+        <script tal:content="string:var method='${options/method}';"></script>
+        <script tal:content="string:var redirect='${options/redirect}';"></script>
+        <script tal:content="string:var url='${options/url}';"></script>
+        <script>
+            $(document).ready(function () {
+
+                $("#submit").click(function (event) {
+
+                    //stop submit the form, we will post it manually.
+                    event.preventDefault();
+
+                    // Get form
+                    var form = $('#tool_form')[0];
+
+                    // Create an FormData object
+                    var data = new FormData(form);
+
+                    $.ajax({
+                        type: method,
+                        enctype: 'multipart/form-data',
+                        url: url,
+                        data: data,
+                        processData: false,
+                        contentType: false,
+                        cache: false,
+                        timeout: 600000,
+                        success: function() {
+                            window.location.href = redirect;
+                        },
+                        error: function (e) {
+                            window.alert("An error occurred. Please make sure all fields are correctly completed")
+
+                        }
+                    });
+
+                });
+
+            });
+        </script>
+	</head>
+	<body>
+		<h2 tal:content="options/title">Create an LTI Configured Tool</h2>
+            <form id="tool_form" method="post" enctype="multipart/form-data">
+                <label>Consumer Key<input type="text" name="consumer_key" tal:attributes='value context/consumer_key | nothing'></label>
+                <label>Secret<input type="password" name="secret" tal:attributes='value context/secret | nothing'></label><br>
+                <br>
+                <label>Input Tool Config parameters<input checked="checked" value="input" type="radio" name="formselector" onclick="displayForm(this)"></label>
+                <label>Paste XML Tool Config<input value="xml_paste" type="radio" name="formselector" onclick="displayForm(this)"></label>
+                <label>XML Tool Config file URL<input value="xml_link" type="radio" name="formselector" onclick="displayForm(this)"></label>
+                <br><br>
+                <div id="input" style="visibility:visible; display:block">
+                    <label>Title<input type="text" name="title" tal:attributes='value options/tool_title | nothing'></label>
+                    <label>Description<input type="text" name="description" tal:attributes='value context/description | nothing'></label><br>
+                    <label>Launch URL<input type="text" name="launch_url" tal:attributes='value context/launch_url | nothing'></label>
+                    <label>Secure Launch URL<input type="text" name="secure_launch_url" tal:attributes='value context/secure_launch_url | nothing'></label>
+                </div>
+
+                <div id="xml_paste" style="visibility:hidden; display:none">
+                    <p>Paste XML Content Here</p>
+                    <textarea cols="50" rows="15" name="xml_paste"></textarea>
+                </div>
+
+                <div id="xml_link" style="visibility:hidden; display:none">
+                    <label>Tool Config URL<input type="text" name="xml_link" /></label>
+                </div>
+
+                <input type="hidden" name="MimeType" value="application/vnd.nextthought.ims.consumer.configuredtool">
+
+                <input type="button" id="submit" value="Submit" name="submit">
+                <button type="reset">Reset</button>
+                <input type="button" value="List" onclick="location.href=redirect">
+            </form>
+
+	</body>
+</html>

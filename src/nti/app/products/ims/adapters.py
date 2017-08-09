@@ -11,6 +11,7 @@ logger = __import__('logging').getLogger(__name__)
 
 from lti import InvalidLTIRequestError
 
+
 from zope import component
 from zope import interface
 

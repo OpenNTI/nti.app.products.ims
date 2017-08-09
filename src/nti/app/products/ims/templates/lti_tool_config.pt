@@ -1,0 +1,26 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	  xmlns:tal="http://xml.zope.org/namespaces/tal">
+    <head>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<title>LTI  Tool Config</title>
+        <style type="text/css">
+            table {
+                border-collapse: collapse;
+            }
+            table, td, th {
+                border: 1px solid black;
+            }
+        </style>
+	</head>
+	<body>
+		<h2>LTI Tool Config</h2>
+            <table>
+                <tr tal:repeat="(key,value) options/attrs/items">
+                    <td tal:content="key" />
+                    <td tal:content="value" />
+                </tr>
+            </table>
+	</body>
+</html>
