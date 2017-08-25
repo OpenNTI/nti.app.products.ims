@@ -232,10 +232,14 @@ class ConfiguredToolCreateView(AbstractAuthenticatedView,
     def get_tools(self):
         return self.context
 
+    def readInput(self, value=None):
+        result = super(ConfiguredToolCreateView, self).readInput()
+        config = _create_tool_config_from_request(self.request)
+        result[u'config'] = config
+        return result
+
     def __call__(self):
         tool = self.readCreateUpdateContentObject(self.remoteUser)
-        config = _create_tool_config_from_request(self.request)
-        tool.config = config
         tools = self.get_tools()
         tools.add_tool(tool)
         msg = _(u'Tool created successfully')
@@ -265,10 +269,11 @@ class ConfiguredToolDeleteView(AbstractAuthenticatedView):
              permission=nauth.ACT_UPDATE)
 class ConfiguredToolEditView(UGDPutView):
 
-    def __call__(self):
-        tool = super(ConfiguredToolEditView, self).__call__()
-        tool.config = _create_tool_config_from_request(self.request)
-        return hexc.HTTPOk("Successfully edited tool")
+    def readInput(self, value=None):
+        result = super(ConfiguredToolEditView, self).readInput()
+        config = _create_tool_config_from_request(self.request)
+        result[u'config'] = config
+        return result
 
 
 @view_config(route_name='objects.generic.traversal',
