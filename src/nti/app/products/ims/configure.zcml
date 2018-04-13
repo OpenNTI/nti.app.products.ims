@@ -34,6 +34,11 @@
 	            provides="nti.ims.lti.interfaces.IToolConfigBuilder"
 	            for="nti.ims.lti.interfaces.ITool" />
 
+	<!-- Decorators -->
+	<subscriber factory=".decorators.ConfiguredToolEditLinkDecorator"
+				for="nti.ims.lti.interfaces.IConfiguredTool pyramid.interfaces.IRequest"
+				provides="nti.externalization.interfaces.IExternalObjectDecorator" />
+
 	<!-- Pyramid traversal -->
 	<adapter name="IMS"
 			 factory=".views.IMSPathAdapter"
