@@ -38,7 +38,6 @@ XML = u"""<xml>
 class TestConsumer(ApplicationLayerTest):
 
     def test_configured_tool_container(self):
-        from IPython.core.debugger import Tracer;Tracer()()
 
         tools = ConfiguredToolContainer()
 
