@@ -38,15 +38,13 @@ XML = u"""<xml>
 class TestConsumer(ApplicationLayerTest):
 
     def test_configured_tool_container(self):
+
         tools = ConfiguredToolContainer()
 
         config = PersistentToolConfig.create_from_xml(XML)
         tool = ConfiguredTool(**KWARGS)
         tool.config = config
         tools.add_tool(tool)
-        assert_that(tools, has_length(1))
-
-        tool = tools[tool]
         assert_that(tools, has_length(1))
 
         tools.delete_tool(tool)
@@ -56,5 +54,5 @@ class TestConsumer(ApplicationLayerTest):
         tool.config = config
         tools.add_tool(tool)
         assert_that(tools, has_length(1))
-        tools.delete_tool(tool.__name__)
+        tools.delete_tool(tool.ntiid)
         assert_that(tools, has_length(0))
