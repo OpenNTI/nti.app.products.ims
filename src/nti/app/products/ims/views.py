@@ -5,6 +5,7 @@
 """
 
 from __future__ import print_function, absolute_import, division
+
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
@@ -36,6 +37,8 @@ from pyramid.view import view_config
 
 from nti.app.base.abstract_views import AbstractView
 from nti.app.base.abstract_views import AbstractAuthenticatedView
+
+from nti.app.externalization.error import handle_possible_validation_error
 
 from nti.app.externalization.internalization import read_body_as_external_object
 
@@ -239,7 +242,10 @@ class ConfiguredToolCreateView(AbstractAuthenticatedView,
         return result
 
     def __call__(self):
-        tool = self.readCreateUpdateContentObject(self.remoteUser)
+        try:
+            tool = self.readCreateUpdateContentObject(self.remoteUser)
+        except Exception as e:
+            handle_possible_validation_error(self.request, e)
         tools = self.get_tools()
         tools.add_tool(tool)
         msg = _(u'Tool created successfully')
