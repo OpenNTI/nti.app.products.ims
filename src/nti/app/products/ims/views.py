@@ -63,7 +63,8 @@ from nti.appserver.ugd_edit_views import UGDPutView
 
 from nti.dataserver import authorization as nauth
 
-from nti.dataserver.interfaces import ILinkExternalHrefOnly, IDeletedObjectPlaceholder
+from nti.dataserver.interfaces import IDeletedObjectPlaceholder
+from nti.dataserver.interfaces import ILinkExternalHrefOnly
 
 from nti.externalization.interfaces import LocatedExternalDict
 from nti.externalization.interfaces import StandardExternalFields
