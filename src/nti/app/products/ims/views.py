@@ -341,7 +341,7 @@ def _create_tool_config_from_request(request):
     config_type = parsed['formselector'].encode('ascii')
     # Create from xml if uploaded
     if config_type == 'xml_paste':
-        config = PersistentToolConfig.create_from_xml(parsed[config_type])
+        config = PersistentToolConfig.create_from_xml(str(parsed[config_type]))  # This has to be string type
     # Retrieve and create from URL if provided
     elif config_type == 'xml_link':
         response = requests.get(parsed[config_type])
