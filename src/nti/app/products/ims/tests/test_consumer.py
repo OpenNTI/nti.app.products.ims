@@ -3,17 +3,22 @@
 
 from __future__ import print_function, absolute_import, division
 
-from nti.externalization.internalization import update_from_external_object
-from zope.schema._bootstrapinterfaces import RequiredMissing
-from zope.schema.interfaces import WrongContainedType
-
-__docformat__ = "restructuredtext en"
-
 # disable: accessing protected members, too many methods
 # pylint: disable=W0212,R0904
 
-from hamcrest import has_length, is_
+import fudge
+
 from hamcrest import assert_that
+from hamcrest import has_length
+from hamcrest import is_
+
+from pyramid.response import FileResponse
+
+from zope.schema.interfaces import WrongContainedType
+
+from nti.app.products.ims.views import _create_tool_config_from_request
+
+from nti.externalization.internalization import update_from_external_object
 
 from nti.ims.lti.consumer import ConfiguredTool
 from nti.ims.lti.consumer import PersistentToolConfig
@@ -21,6 +26,7 @@ from nti.ims.lti.consumer import ConfiguredToolContainer
 
 from nti.app.testing.application_webtest import ApplicationLayerTest
 
+__docformat__ = "restructuredtext en"
 
 KWARGS = {
     'consumer_key': u'test_key',
@@ -99,3 +105,23 @@ class TestConsumer(ApplicationLayerTest):
                                                 " u'The specified URL is not valid.', 'launch_url'),"
                                                 " InvalidURI('test.com', u'The specified URL is not valid.',"
                                                 " 'secure_launch_url')], 'config')"))
+
+    @fudge.patch('nti.app.products.ims.views.requests.get',
+                 'nti.app.products.ims.views.read_body_as_external_object')
+    def test_xml_download_(self, mock_response, mock_read):
+
+        from IPython.core.debugger import Tracer;Tracer()()
+
+        response = 'src/nti/app/products/ims/tests/ltitest.xml'
+        fake_response = mock_response.is_callable()
+        fake_response.returns(response)
+
+        fake_read = mock_read.is_callable()
+        fake_read.returns({'formselector': 'xml_link',
+                           'xml_link': 'doesnt matter'})
+
+        config = _create_tool_config_from_request(None)
+
+        assert_that(config.title, is_('Qa Tool'))
+        assert_that(config.description, is_('stool'))
+        assert_that(config.launch_url, is_('https://lti.tools/saltire/tp'))
