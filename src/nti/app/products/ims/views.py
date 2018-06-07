@@ -66,6 +66,7 @@ from nti.appserver.ugd_edit_views import UGDPutView
 
 from nti.dataserver import authorization as nauth
 
+from nti.dataserver.interfaces import IDeletedObjectPlaceholder
 from nti.dataserver.interfaces import ILinkExternalHrefOnly
 
 from nti.externalization.interfaces import LocatedExternalDict
@@ -218,7 +219,11 @@ class ConfiguredToolsGetView(AbstractAuthenticatedView):
     def __call__(self):
         tools = self.get_tools()
         result = LocatedExternalDict()
-        items = [tool for tool in tools.values()]
+        items = []
+        for tool in tools.values():
+            if IDeletedObjectPlaceholder.providedBy(tool):
+                continue
+            items.append(tool)
         result[ITEMS] = items
         result[TOTAL] = result[ITEM_COUNT] = len(items)
         return result
@@ -263,8 +268,8 @@ class ConfiguredToolDeleteView(AbstractAuthenticatedView):
         return self.context.__parent__
 
     def __call__(self):
-        tools = self.get_tools()
-        tools.delete_tool(self.context)
+        if not IDeletedObjectPlaceholder.providedBy(self.context):
+            interface.alsoProvides(self.context, IDeletedObjectPlaceholder)
         return hexc.HTTPNoContent()
 
 
