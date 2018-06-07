@@ -6,7 +6,7 @@ from __future__ import print_function, absolute_import, division
 from zope import component
 from zope import interface
 
-from nti.app.renderers.decorators import AbstractAuthenticatedRequestAwareDecorator
+from nti.app.renderers.decorators import AbstractRequestAwareDecorator
 
 from nti.appserver.pyramid_authorization import has_permission
 
@@ -35,7 +35,7 @@ class ConfiguredToolEditLinkDecorator(EditLinkDecorator):
 
 @component.adapter(IConfiguredTool)
 @interface.implementer(IExternalObjectDecorator)
-class ConfiguredToolDeletedDecorator(AbstractAuthenticatedRequestAwareDecorator):
+class ConfiguredToolDeletedDecorator(AbstractRequestAwareDecorator):
 
     def _do_decorate_external(self, context, result):
         result['deleted'] = IDeletedObjectPlaceholder.providedBy(context)
