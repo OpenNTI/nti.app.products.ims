@@ -110,8 +110,6 @@ class TestConsumer(ApplicationLayerTest):
                  'nti.app.products.ims.views.read_body_as_external_object')
     def test_xml_download_(self, mock_response, mock_read):
 
-        from IPython.core.debugger import Tracer;Tracer()()
-
         response = 'src/nti/app/products/ims/tests/ltitest.xml'
         fake_response = mock_response.is_callable()
         fake_response.returns(response)
