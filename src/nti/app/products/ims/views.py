@@ -350,10 +350,7 @@ def _create_tool_config_from_request(request):
     # Retrieve and create from URL if provided
     elif config_type == 'xml_link':
         response = requests.get(parsed[config_type])
-        xml_tree = ET.parse(response)
-        root = xml_tree.getroot()
-        xml_string = ET.tostring(root)
-        config = PersistentToolConfig.create_from_xml(xml_string)
+        config = PersistentToolConfig.create_from_xml(response.body)
     # Manual creation
     else:
         config = PersistentToolConfig(**parsed)

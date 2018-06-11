@@ -3,10 +3,10 @@
 
 from __future__ import print_function, absolute_import, division
 
-__docformat__ = "restructuredtext en"
-
 # disable: accessing protected members, too many methods
 # pylint: disable=W0212,R0904
+
+import fudge
 
 from hamcrest import is_
 from hamcrest import ends_with
@@ -14,7 +14,13 @@ from hamcrest import has_entry
 from hamcrest import assert_that
 from hamcrest import has_entries
 
-from nti.testing.matchers import verifiably_provides
+from io import BytesIO
+
+import os
+
+from pyramid.response import Response
+
+from xml.etree import ElementTree as ET
 
 from zope import component
 from zope import interface
@@ -34,6 +40,8 @@ from nti.ims.lti.oauth import OAuthConsumer
 from nti.app.products.ims.interfaces import ILTIRequest
 from nti.app.products.ims.interfaces import ILTIUserFactory
 
+from nti.app.products.ims.views import _create_tool_config_from_request
+
 from nti.app.testing.application_webtest import ApplicationLayerTest
 
 from nti.app.testing.decorators import WithSharedApplicationMockDS
@@ -43,6 +51,9 @@ from nti.dataserver.users import User
 from nti.dataserver.users.interfaces import IUserProfile
 
 from nti.dataserver.tests import mock_dataserver
+
+from nti.testing.matchers import verifiably_provides
+
 
 ITEMS = StandardExternalFields.ITEMS
 ITEM_COUNT = StandardExternalFields.ITEM_COUNT
@@ -229,3 +240,35 @@ class TestToolViews(ApplicationLayerTest):
         keys = {'tool_consumer_instance_guid': 'dne'}
         self._test_provisioning_result(303, keys)
         self._teardown_mock(u'foonextthoughtcom')
+
+    @fudge.patch('nti.app.products.ims.views.requests.get',
+                 'nti.app.products.ims.views.read_body_as_external_object')
+    def test_xml_download_(self, mock_response, mock_read):
+
+        response = Response()
+        response.content_encoding = 'identity'
+        response.content_type = 'text/xml; charset=UTF-8'
+        filename = 'ltitest.xml'
+        response.content_disposition = 'attachment; filename="%s"' % filename
+
+        stream = BytesIO()
+        file_path = os.path.join(os.path.dirname(__file__), 'ltitest.xml')
+        tree = ET.parse(file_path)
+        tree.write(stream)
+
+        stream.seek(0)
+        stream.flush()
+        response.body_file = stream
+
+        fake_response = mock_response.is_callable()
+        fake_response.returns(response)
+
+        fake_read = mock_read.is_callable()
+        fake_read.returns({'formselector': 'xml_link',
+                           'xml_link': 'doesnt matter'})
+
+        config = _create_tool_config_from_request(None)
+
+        assert_that(config.title, is_('Qa Tool'))
+        assert_that(config.description, is_('stool'))
+        assert_that(config.launch_url, is_('https://lti.tools/saltire/tp'))
