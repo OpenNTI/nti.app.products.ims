@@ -15,6 +15,9 @@ MessageFactory = zope.i18nmessageid.MessageFactory(__name__)
 #: Deep Linking rel
 DEEP_LINKING = 'DeepLinking'
 
+#: External Tool Link Selection rel
+EXTERNAL_TOOL_LINK_SELECTION = 'ExternalToolLinkSelection'
+
 #: IMS Path
 IMS = 'IMS'
 

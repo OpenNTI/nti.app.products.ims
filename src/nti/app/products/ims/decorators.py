@@ -7,6 +7,7 @@ from zope import component
 from zope import interface
 
 from nti.app.products.ims import DEEP_LINKING
+from nti.app.products.ims import EXTERNAL_TOOL_LINK_SELECTION
 
 from nti.app.renderers.decorators import AbstractRequestAwareDecorator
 from nti.app.renderers.decorators import AbstractAuthenticatedRequestAwareDecorator
@@ -34,6 +35,8 @@ logger = __import__('logging').getLogger(__name__)
 
 DEEP_LINKING_PATH = '@@deep_linking'
 
+EXTERNAL_TOOL_LINK_SELECTION_PATH = '@@external_tool_link_selection'
+
 
 @component.adapter(IConfiguredTool)
 @interface.implementer(IExternalObjectDecorator)
@@ -58,3 +61,12 @@ class ConfiguredToolDeepLinkingDecorator(AbstractAuthenticatedRequestAwareDecora
     def _do_decorate_external(self, context, result):
         _links = result.setdefault(LINKS, [])
         _links.append(Link(context, rel=DEEP_LINKING, elements=(DEEP_LINKING_PATH,)))
+
+
+@component.adapter(IConfiguredTool)
+@interface.implementer(IExternalObjectDecorator)
+class ConfiguredToolDeepLinkingDecorator(AbstractAuthenticatedRequestAwareDecorator):
+
+    def _do_decorate_external(self, context, result):
+        _links = result.setdefault(LINKS, [])
+        _links.append(Link(context, rel=EXTERNAL_TOOL_LINK_SELECTION, elements=(EXTERNAL_TOOL_LINK_SELECTION_PATH,)))

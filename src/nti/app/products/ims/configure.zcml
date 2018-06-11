@@ -43,6 +43,14 @@
 				for="nti.ims.lti.interfaces.IConfiguredTool pyramid.interfaces.IRequest"
 				provides="nti.externalization.interfaces.IExternalObjectDecorator" />
 
+	<subscriber factory=".decorators.DeepLinking"
+				for="nti.ims.lti.interfaces.IConfiguredTool pyramid.interfaces.IRequest"
+				provides="nti.externalization.interfaces.IExternalObjectDecorator" />
+
+	<subscriber factory=".decorators.ExternalToolLinkSelection"
+				for="nti.ims.lti.interfaces.IConfiguredTool pyramid.interfaces.IRequest"
+				provides="nti.externalization.interfaces.IExternalObjectDecorator" />
+
 	<!-- Pyramid traversal -->
 	<adapter name="IMS"
 			 factory=".views.IMSPathAdapter"
