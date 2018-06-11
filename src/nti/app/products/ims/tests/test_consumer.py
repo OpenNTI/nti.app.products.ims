@@ -12,13 +12,20 @@ from hamcrest import is_
 
 from zope.schema.interfaces import WrongContainedType
 
+from nti.app.products.ims import subscribers
+
+from nti.app.testing.application_webtest import ApplicationLayerTest
+
 from nti.externalization.internalization import update_from_external_object
 
 from nti.ims.lti.consumer import ConfiguredTool
 from nti.ims.lti.consumer import PersistentToolConfig
 from nti.ims.lti.consumer import ConfiguredToolContainer
 
-from nti.app.testing.application_webtest import ApplicationLayerTest
+from nti.ims.lti.interfaces import IDeepLinking
+
+from nti.testing.matchers import verifiably_provides, validly_provides
+
 
 __docformat__ = "restructuredtext en"
 
@@ -36,6 +43,15 @@ XML = u"""<xml>
             <description>A Test Config</description>
             <launch_url>http://testconfig.com</launch_url>
             <secure_launch_url>https://testconfig.com</secure_launch_url>
+            <extensions platform="nextthought.com">
+                <options name="resource_selection">
+                    <property name="enabled">true</property>
+                    <property name="url">https://example.com/chapter_selector</property>
+                    <property name="text">eBook Chapter Selector</property>
+                    <property name="selection_width">500</property>
+                    <property name="selection_height">300</property>
+                </options>
+            </extensions>
          </xml>
       """
 
@@ -99,3 +115,15 @@ class TestConsumer(ApplicationLayerTest):
                                                 " u'The specified URL is not valid.', 'launch_url'),"
                                                 " InvalidURI('test.com', u'The specified URL is not valid.',"
                                                 " 'secure_launch_url')], 'config')"))
+
+    def test_subscribers(self):
+
+        tool = ConfiguredTool()
+        config = PersistentToolConfig.create_from_xml(XML)
+        external_tool_link_subscriber = subscribers.DeepLinking(tool, config)
+        external_tool_link_subscriber.build_extensions()
+        assert_that(tool, verifiably_provides(IDeepLinking))
+        assert_that(tool, validly_provides(IDeepLinking))
+
+
+

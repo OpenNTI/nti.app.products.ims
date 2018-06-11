@@ -84,4 +84,9 @@
 			 provides=".interfaces.ILTIUserFactory"
 			 for=".interfaces.ILTIRequest" />
 
+	<!-- Subscribers -->
+	<subscriber factory=".subscribers.DeepLinking"
+				provides=".interfaces.IConfiguredToolExtensionsBuilder"
+				for="nti.ims.lti.interfaces.IConfiguredTool nti.ims.lti.interfaces.IToolConfig" />
+
 </configure>

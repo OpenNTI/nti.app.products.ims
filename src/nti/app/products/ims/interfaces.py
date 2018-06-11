@@ -71,3 +71,14 @@ class ILaunchParamsMapping(interface.Interface):
     e.g.
     'EXAMPLE_PACKAGE_ID': 'tool_consumer_instance_guid'
     """
+
+
+class IConfiguredToolExtensionsBuilder(interface.Interface):
+    """
+    Subscriber interface that process LTI extensions passed in on the ToolConfig
+    """
+
+    def build_extensions(params):
+        """
+        Adds appropriate configuration details to the Configured Tool for given extensions
+        """

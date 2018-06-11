@@ -6,6 +6,8 @@
 
 from __future__ import print_function, absolute_import, division
 
+from zope.component import subscribers
+
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
@@ -51,7 +53,7 @@ from nti.app.products.ims import LTI
 from nti.app.products.ims import SIS
 from nti.app.products.ims import TOOLS
 
-from nti.app.products.ims.interfaces import ILTIUserFactory
+from nti.app.products.ims.interfaces import ILTIUserFactory, IConfiguredToolExtensionsBuilder
 
 from nti.app.products.ims.interfaces import ILTIRequest
 from nti.app.products.ims.interfaces import IToolProvider
@@ -252,6 +254,8 @@ class ConfiguredToolCreateView(AbstractAuthenticatedView,
         except Exception as e:
             handle_possible_validation_error(self.request, e)
         tools = self.get_tools()
+        for subscriber in subscribers((tool, tool.config), IConfiguredToolExtensionsBuilder):
+            subscriber.build_extensions()
         tools.add_tool(tool)
         msg = _(u'Tool created successfully')
         return hexc.HTTPCreated(msg)
