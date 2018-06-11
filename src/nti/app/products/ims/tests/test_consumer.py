@@ -23,8 +23,10 @@ from nti.ims.lti.consumer import PersistentToolConfig
 from nti.ims.lti.consumer import ConfiguredToolContainer
 
 from nti.ims.lti.interfaces import IDeepLinking
+from nti.ims.lti.interfaces import IExternalToolLinkSelection
 
-from nti.testing.matchers import verifiably_provides, validly_provides
+from nti.testing.matchers import validly_provides
+from nti.testing.matchers import verifiably_provides
 
 
 __docformat__ = "restructuredtext en"
@@ -43,7 +45,7 @@ XML = u"""<xml>
             <description>A Test Config</description>
             <launch_url>http://testconfig.com</launch_url>
             <secure_launch_url>https://testconfig.com</secure_launch_url>
-            <extensions platform="nextthought.com">
+            <extensions platform="canvas.instructure.com">
                 <options name="resource_selection">
                     <property name="enabled">true</property>
                     <property name="url">https://example.com/chapter_selector</property>
@@ -120,10 +122,16 @@ class TestConsumer(ApplicationLayerTest):
 
         tool = ConfiguredTool()
         config = PersistentToolConfig.create_from_xml(XML)
-        external_tool_link_subscriber = subscribers.DeepLinking(tool, config)
-        external_tool_link_subscriber.build_extensions()
-        assert_that(tool, verifiably_provides(IDeepLinking))
-        assert_that(tool, validly_provides(IDeepLinking))
+        deep_linking_subscriber = subscribers.DeepLinking(tool, config)
+        deep_linking_subscriber.build_extensions()
+        assert_that(tool, not verifiably_provides(IDeepLinking))
+        assert_that(tool, not validly_provides(IDeepLinking))
+
+        external_tool_link_selection = subscribers.ExternalToolLinkSelection(tool, config)
+        external_tool_link_selection.build_extensions()
+        assert_that(tool, verifiably_provides(IExternalToolLinkSelection))
+        assert_that(tool, validly_provides(IExternalToolLinkSelection))
+
 
 
 

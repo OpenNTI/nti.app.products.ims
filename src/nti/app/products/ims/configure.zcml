@@ -89,4 +89,8 @@
 				provides=".interfaces.IConfiguredToolExtensionsBuilder"
 				for="nti.ims.lti.interfaces.IConfiguredTool nti.ims.lti.interfaces.IToolConfig" />
 
+	<subscriber factory=".subscribers.ExternalToolLinkSelection"
+				provides=".interfaces.IConfiguredToolExtensionsBuilder"
+				for="nti.ims.lti.interfaces.IConfiguredTool nti.ims.lti.interfaces.IToolConfig" />
+
 </configure>
