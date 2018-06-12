@@ -298,7 +298,12 @@ class ConfiguredToolEditView(UGDPutView):
              name='list',
              permission=nauth.ACT_READ)
 def list_tools(context, request):
-    tool_table = LTIToolsTable(context, IBrowserRequest(request))
+    tools = dict()
+    for (key, value) in context.items():
+        if IDeletedObjectPlaceholder.providedBy(value):
+            continue
+        tools[key] = value
+    tool_table = LTIToolsTable(tools, IBrowserRequest(request))
     tool_table.update()
     return {'table': tool_table}
 
@@ -354,7 +359,7 @@ def _create_tool_config_from_request(request):
     # Retrieve and create from URL if provided
     elif config_type == 'xml_link':
         response = requests.get(parsed[config_type])
-        config = PersistentToolConfig.create_from_xml(response.body)
+        config = PersistentToolConfig.create_from_xml(response.text)
     # Manual creation
     else:
         config = PersistentToolConfig(**parsed)

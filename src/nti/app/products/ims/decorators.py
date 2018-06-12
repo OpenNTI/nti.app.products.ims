@@ -65,7 +65,7 @@ class ConfiguredToolDeepLinkingDecorator(AbstractAuthenticatedRequestAwareDecora
 
 @component.adapter(IConfiguredTool)
 @interface.implementer(IExternalObjectDecorator)
-class ConfiguredToolDeepLinkingDecorator(AbstractAuthenticatedRequestAwareDecorator):
+class ConfiguredToolExternalToolLinkSelectionDecorator(AbstractAuthenticatedRequestAwareDecorator):
 
     def _do_decorate_external(self, context, result):
         _links = result.setdefault(LINKS, [])

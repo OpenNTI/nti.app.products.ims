@@ -43,11 +43,11 @@
 				for="nti.ims.lti.interfaces.IConfiguredTool pyramid.interfaces.IRequest"
 				provides="nti.externalization.interfaces.IExternalObjectDecorator" />
 
-	<subscriber factory=".decorators.DeepLinking"
+	<subscriber factory=".decorators.ConfiguredToolDeepLinkingDecorator"
 				for="nti.ims.lti.interfaces.IConfiguredTool pyramid.interfaces.IRequest"
 				provides="nti.externalization.interfaces.IExternalObjectDecorator" />
 
-	<subscriber factory=".decorators.ExternalToolLinkSelection"
+	<subscriber factory=".decorators.ConfiguredToolExternalToolLinkSelectionDecorator"
 				for="nti.ims.lti.interfaces.IConfiguredTool pyramid.interfaces.IRequest"
 				provides="nti.externalization.interfaces.IExternalObjectDecorator" />
 
