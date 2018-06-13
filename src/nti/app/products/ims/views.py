@@ -4,13 +4,15 @@
 .. $Id$
 """
 
-from __future__ import print_function, absolute_import, division
-
-from zope.component import subscribers
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
+
+import gevent
 
 from lti import tool_config
 
@@ -18,10 +20,10 @@ from lti.utils import InvalidLTIRequestError
 
 import requests
 
-from xml.etree import ElementTree as ET
-
 from zope import component
 from zope import interface
+
+from zope.component import subscribers
 
 from zope.location.interfaces import IContained
 from zope.location.interfaces import LocationError
@@ -358,7 +360,13 @@ def _create_tool_config_from_request(request):
         config = PersistentToolConfig.create_from_xml(str(parsed[config_type]))  # This has to be string type
     # Retrieve and create from URL if provided
     elif config_type == 'xml_link':
-        response = requests.get(parsed[config_type])
+        with gevent.Timeout(3, hexc.HTTPGatewayTimeout):
+            try:
+                response = requests.get(parsed[config_type])
+            except ValueError:
+                raise hexc.HTTPUnprocessableEntity('Invalid Tool Config URL')
+            except:
+                raise hexc.HTTPBadGateway()
         config = PersistentToolConfig.create_from_xml(response.text)
     # Manual creation
     else:
