@@ -39,6 +39,7 @@ class DeepLinking(ConfiguredToolExtensions):
             interface.alsoProvides(self.tool, IDeepLinking)
 
 
+@interface.implementer(IConfiguredToolExtensionsBuilder)
 class ExternalToolLinkSelection(ConfiguredToolExtensions):
 
     def build_extensions(self):
