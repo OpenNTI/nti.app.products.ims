@@ -23,6 +23,8 @@ from nti.externalization.interfaces import IExternalObjectDecorator
 from nti.externalization.interfaces import StandardExternalFields
 
 from nti.ims.lti.interfaces import IConfiguredTool
+from nti.ims.lti.interfaces import IDeepLinking
+from nti.ims.lti.interfaces import IExternalToolLinkSelection
 
 from nti.links import Link
 
@@ -58,8 +60,9 @@ class ConfiguredToolDeletedDecorator(AbstractRequestAwareDecorator):
 class ConfiguredToolDeepLinkingDecorator(AbstractAuthenticatedRequestAwareDecorator):
 
     def _do_decorate_external(self, context, result):
-        _links = result.setdefault(LINKS, [])
-        _links.append(Link(context, rel=CONTENT_SELECTION, elements=(DEEP_LINKING_PATH,)))
+        if IDeepLinking.providedBy(context):
+            _links = result.setdefault(LINKS, [])
+            _links.append(Link(context, rel=CONTENT_SELECTION, elements=(DEEP_LINKING_PATH,)))
 
 
 @component.adapter(IConfiguredTool)
@@ -67,5 +70,6 @@ class ConfiguredToolDeepLinkingDecorator(AbstractAuthenticatedRequestAwareDecora
 class ConfiguredToolExternalToolLinkSelectionDecorator(AbstractAuthenticatedRequestAwareDecorator):
 
     def _do_decorate_external(self, context, result):
-        _links = result.setdefault(LINKS, [])
-        _links.append(Link(context, rel=CONTENT_SELECTION, elements=(EXTERNAL_TOOL_LINK_SELECTION_PATH,)))
+        if IExternalToolLinkSelection.providedBy(context):
+            _links = result.setdefault(LINKS, [])
+            _links.append(Link(context, rel=CONTENT_SELECTION, elements=(EXTERNAL_TOOL_LINK_SELECTION_PATH,)))

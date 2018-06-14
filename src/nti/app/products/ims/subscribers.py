@@ -9,6 +9,7 @@ from zope import component
 
 from zope import interface
 
+from zope.lifecycleevent import IObjectAddedEvent
 from zope.lifecycleevent import IObjectModifiedEvent
 
 from nti.ims.lti.interfaces import IConfiguredTool
@@ -32,8 +33,11 @@ def _get_params(tool):
 
 
 @component.adapter(IConfiguredTool, IObjectModifiedEvent)
+@component.adapter(IConfiguredTool, IObjectAddedEvent)
 def deep_linking(tool, _event):
     params = _get_params(tool)
+    from IPython.core.debugger import Tracer;Tracer()()
+
     if 'resource_selection' in params and _do_deep_linking(params):
         interface.alsoProvides(tool, IDeepLinking)
     elif IDeepLinking.providedBy(tool):
@@ -41,7 +45,10 @@ def deep_linking(tool, _event):
 
 
 @component.adapter(IConfiguredTool, IObjectModifiedEvent)
+@component.adapter(IConfiguredTool, IObjectAddedEvent)
 def external_tool_link_selection(tool, _event):
+    from IPython.core.debugger import Tracer;Tracer()()
+
     params = _get_params(tool)
     if 'resource_selection' in params and not _do_deep_linking(params):
         interface.alsoProvides(tool, IExternalToolLinkSelection)

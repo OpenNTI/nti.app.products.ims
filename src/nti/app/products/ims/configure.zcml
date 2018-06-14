@@ -96,7 +96,13 @@
 	<subscriber handler=".subscribers.deep_linking"
 				for="nti.ims.lti.interfaces.IConfiguredTool zope.lifecycleevent.interfaces.IObjectModifiedEvent" />
 
+	<subscriber handler=".subscribers.deep_linking"
+				for="nti.ims.lti.interfaces.IConfiguredTool zope.lifecycleevent.interfaces.IObjectAddedEvent" />
+
 	<subscriber handler=".subscribers.external_tool_link_selection"
 				for="nti.ims.lti.interfaces.IConfiguredTool zope.lifecycleevent.interfaces.IObjectModifiedEvent" />
+
+	<subscriber handler=".subscribers.external_tool_link_selection"
+				for="nti.ims.lti.interfaces.IConfiguredTool zope.lifecycleevent.interfaces.IObjectAddedEvent" />
 
 </configure>
