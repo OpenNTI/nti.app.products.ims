@@ -256,8 +256,6 @@ class ConfiguredToolCreateView(AbstractAuthenticatedView,
         except Exception as e:
             handle_possible_validation_error(self.request, e)
         tools = self.get_tools()
-        for subscriber in subscribers((tool, tool.config), IConfiguredToolExtensionsBuilder):
-            subscriber.build_extensions()
         tools.add_tool(tool)
         msg = _(u'Tool created successfully')
         return hexc.HTTPCreated(msg)

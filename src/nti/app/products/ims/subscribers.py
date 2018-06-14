@@ -5,9 +5,13 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import division
 
+from zope import component
+
 from zope import interface
 
-from nti.app.products.ims.interfaces import IConfiguredToolExtensionsBuilder
+from zope.lifecycleevent import IObjectModifiedEvent
+
+from nti.app.products.ims.interfaces import IConfiguredTool
 
 from nti.ims.lti.interfaces import IDeepLinking
 from nti.ims.lti.interfaces import IExternalToolLinkSelection
@@ -21,27 +25,22 @@ def _do_deep_linking(params):
     return params['resource_selection'].get('message_type') == 'ContentItemSelectionRequest'
 
 
-class ConfiguredToolExtensions(object):
-
-    def __init__(self, tool, config):
-        self.tool = tool
-        self.config = config
-        self.params = config.get_ext_params('canvas.instructure.com')
-        if self.params is None:
-            self.params = {}
+def _get_params(tool):
+    params = tool.config.get_ext_params('canvas.instructure.com')
+    if params is None:
+        params = {}
+    return params
 
 
-@interface.implementer(IConfiguredToolExtensionsBuilder)
-class DeepLinking(ConfiguredToolExtensions):
+@component.adapter(IConfiguredTool, IObjectModifiedEvent)
+def deep_linking(tool, _event):
+    params = _get_params(tool)
+    if 'resource_selection' in params and _do_deep_linking(params):
+        interface.alsoProvides(tool, IDeepLinking)
 
-    def build_extensions(self):
-        if 'resource_selection' in self.params and _do_deep_linking(self.params):
-            interface.alsoProvides(self.tool, IDeepLinking)
 
-
-@interface.implementer(IConfiguredToolExtensionsBuilder)
-class ExternalToolLinkSelection(ConfiguredToolExtensions):
-
-    def build_extensions(self):
-        if 'resource_selection' in self.params and not _do_deep_linking(self.params):
-            interface.alsoProvides(self.tool, IExternalToolLinkSelection)
+@component.adapter(IConfiguredTool, IObjectModifiedEvent)
+def external_tool_link_selection(tool, _event):
+    params = _get_params(tool)
+    if 'resource_selection' in params and not _do_deep_linking(params):
+        interface.alsoProvides(tool, IExternalToolLinkSelection)

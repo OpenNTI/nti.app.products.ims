@@ -6,8 +6,7 @@ from __future__ import print_function, absolute_import, division
 from zope import component
 from zope import interface
 
-from nti.app.products.ims import DEEP_LINKING
-from nti.app.products.ims import EXTERNAL_TOOL_LINK_SELECTION
+from nti.app.products.ims import CONTENT_SELECTION
 
 from nti.app.renderers.decorators import AbstractRequestAwareDecorator
 from nti.app.renderers.decorators import AbstractAuthenticatedRequestAwareDecorator
@@ -60,7 +59,7 @@ class ConfiguredToolDeepLinkingDecorator(AbstractAuthenticatedRequestAwareDecora
 
     def _do_decorate_external(self, context, result):
         _links = result.setdefault(LINKS, [])
-        _links.append(Link(context, rel=DEEP_LINKING, elements=(DEEP_LINKING_PATH,)))
+        _links.append(Link(context, rel=CONTENT_SELECTION, elements=(DEEP_LINKING_PATH,)))
 
 
 @component.adapter(IConfiguredTool)
@@ -69,4 +68,4 @@ class ConfiguredToolExternalToolLinkSelectionDecorator(AbstractAuthenticatedRequ
 
     def _do_decorate_external(self, context, result):
         _links = result.setdefault(LINKS, [])
-        _links.append(Link(context, rel=EXTERNAL_TOOL_LINK_SELECTION, elements=(EXTERNAL_TOOL_LINK_SELECTION_PATH,)))
+        _links.append(Link(context, rel=CONTENT_SELECTION, elements=(EXTERNAL_TOOL_LINK_SELECTION_PATH,)))

@@ -93,12 +93,10 @@
 			 for=".interfaces.ILTIRequest" />
 
 	<!-- Subscribers -->
-	<subscriber factory=".subscribers.DeepLinking"
-				provides=".interfaces.IConfiguredToolExtensionsBuilder"
-				for="nti.ims.lti.interfaces.IConfiguredTool nti.ims.lti.interfaces.IToolConfig" />
+	<subscriber handler=".subscribers.deep_linking"
+				for="nti.ims.lti.interfaces.IConfiguredTool zope.lifecycleevent.interfaces.IObjectModifiedEvent" />
 
-	<subscriber factory=".subscribers.ExternalToolLinkSelection"
-				provides=".interfaces.IConfiguredToolExtensionsBuilder"
-				for="nti.ims.lti.interfaces.IConfiguredTool nti.ims.lti.interfaces.IToolConfig" />
+	<subscriber handler=".subscribers.external_tool_link_selection"
+				for="nti.ims.lti.interfaces.IConfiguredTool zope.lifecycleevent.interfaces.IObjectModifiedEvent" />
 
 </configure>
