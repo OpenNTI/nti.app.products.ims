@@ -11,8 +11,7 @@ from zope import interface
 
 from zope.lifecycleevent import IObjectModifiedEvent
 
-from nti.app.products.ims.interfaces import IConfiguredTool
-
+from nti.ims.lti.interfaces import IConfiguredTool
 from nti.ims.lti.interfaces import IDeepLinking
 from nti.ims.lti.interfaces import IExternalToolLinkSelection
 

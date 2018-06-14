@@ -272,7 +272,3 @@ class TestToolViews(ApplicationLayerTest):
         assert_that(config.title, is_('Qa Tool'))
         assert_that(config.description, is_('stool'))
         assert_that(config.launch_url, is_('https://lti.tools/saltire/tp'))
-
-    def test_content_selection(self):
-        pass
-

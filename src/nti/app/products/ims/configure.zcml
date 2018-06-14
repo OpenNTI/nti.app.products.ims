@@ -99,7 +99,4 @@
 	<subscriber handler=".subscribers.external_tool_link_selection"
 				for="nti.ims.lti.interfaces.IConfiguredTool zope.lifecycleevent.interfaces.IObjectModifiedEvent" />
 
-	<subscriber handler=".subscribers.update_content_selection"
-				for="nti.ims.lti.interfaces.IConfiguredTool zope.lifecycleevent.interfaces.IObjectModifiedEvent" />
-
 </configure>

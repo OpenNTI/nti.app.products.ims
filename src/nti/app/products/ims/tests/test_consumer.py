@@ -10,9 +10,11 @@ from hamcrest import assert_that
 from hamcrest import has_length
 from hamcrest import is_
 
-from zope.schema.interfaces import WrongContainedType
+from zope.event import notify
 
-from nti.app.products.ims import subscribers
+from zope.lifecycleevent import ObjectModifiedEvent
+
+from zope.schema.interfaces import WrongContainedType
 
 from nti.app.testing.application_webtest import ApplicationLayerTest
 
@@ -123,16 +125,17 @@ class TestConsumer(ApplicationLayerTest):
 
         tool = ConfiguredTool()
         config = PersistentToolConfig.create_from_xml(XML)
-        deep_linking_subscriber = subscribers.DeepLinking(tool, config)
-        deep_linking_subscriber.build_extensions()
+        tool.config = config
+        notify(ObjectModifiedEvent(tool, "Add External Tool Link Selection extension"))
         assert_that(tool, not verifiably_provides(IDeepLinking))
         assert_that(tool, not validly_provides(IDeepLinking))
-
-        external_tool_link_selection = subscribers.ExternalToolLinkSelection(tool, config)
-        external_tool_link_selection.build_extensions()
         assert_that(tool, verifiably_provides(IExternalToolLinkSelection))
         assert_that(tool, validly_provides(IExternalToolLinkSelection))
 
-
-
-
+        config = PersistentToolConfig(**KWARGS)
+        tool.config = config
+        notify(ObjectModifiedEvent(tool, "Remove External Tool Link Selection extension"))
+        assert_that(tool, not verifiably_provides(IDeepLinking))
+        assert_that(tool, not validly_provides(IDeepLinking))
+        assert_that(tool, not verifiably_provides(IExternalToolLinkSelection))
+        assert_that(tool, not validly_provides(IExternalToolLinkSelection))
