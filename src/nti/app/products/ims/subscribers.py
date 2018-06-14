@@ -37,6 +37,8 @@ def deep_linking(tool, _event):
     params = _get_params(tool)
     if 'resource_selection' in params and _do_deep_linking(params):
         interface.alsoProvides(tool, IDeepLinking)
+    elif IDeepLinking.providedBy(tool):
+        interface.noLongerProvides(tool, IDeepLinking)
 
 
 @component.adapter(IConfiguredTool, IObjectModifiedEvent)
@@ -44,3 +46,5 @@ def external_tool_link_selection(tool, _event):
     params = _get_params(tool)
     if 'resource_selection' in params and not _do_deep_linking(params):
         interface.alsoProvides(tool, IExternalToolLinkSelection)
+    elif IExternalToolLinkSelection.providedBy(tool):
+        interface.noLongerProvides(tool, IExternalToolLinkSelection)
