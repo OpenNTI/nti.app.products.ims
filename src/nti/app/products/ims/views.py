@@ -55,7 +55,7 @@ from nti.app.products.ims import LTI
 from nti.app.products.ims import SIS
 from nti.app.products.ims import TOOLS
 
-from nti.app.products.ims.interfaces import ILTIUserFactory, IConfiguredToolExtensionsBuilder
+from nti.app.products.ims.interfaces import ILTIUserFactory
 
 from nti.app.products.ims.interfaces import ILTIRequest
 from nti.app.products.ims.interfaces import IToolProvider
