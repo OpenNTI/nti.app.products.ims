@@ -14,6 +14,8 @@ logger = __import__('logging').getLogger(__name__)
 
 import gevent
 
+from lxml.etree import LxmlSyntaxError
+
 from lti import tool_config
 
 from lti.utils import InvalidLTIRequestError
@@ -355,17 +357,21 @@ def _create_tool_config_from_request(request):
     config_type = parsed['formselector'].encode('ascii')
     # Create from xml if uploaded
     if config_type == 'xml_paste':
-        config = PersistentToolConfig.create_from_xml(str(parsed[config_type]))  # This has to be string type
+        try:
+            config = PersistentToolConfig.create_from_xml(str(parsed[config_type]))  # This has to be string type
+        except LxmlSyntaxError:
+            logger.exception('Bad xml config provided')
+            raise hexc.HTTPBadRequest(_('Invalid configuration XML.'))
     # Retrieve and create from URL if provided
     elif config_type == 'xml_link':
         with gevent.Timeout(3, hexc.HTTPGatewayTimeout):
             try:
                 response = requests.get(parsed[config_type])
+                response.raise_for_status()
             except ValueError:
                 raise hexc.HTTPUnprocessableEntity('Invalid Tool Config URL')
             except:
-                raise hexc.HTTPBadGateway()
-        config = PersistentToolConfig.create_from_xml(response.text)
+                raise hexc.HTTPBadGateway('Unable to reach %s', parsed[config_type])
     # Manual creation
     else:
         config = PersistentToolConfig(**parsed)
