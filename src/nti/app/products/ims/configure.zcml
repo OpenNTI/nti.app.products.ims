@@ -43,11 +43,7 @@
 				for="nti.ims.lti.interfaces.IConfiguredTool pyramid.interfaces.IRequest"
 				provides="nti.externalization.interfaces.IExternalObjectDecorator" />
 
-	<subscriber factory=".decorators.ConfiguredToolDeepLinkingDecorator"
-				for="nti.ims.lti.interfaces.IConfiguredTool pyramid.interfaces.IRequest"
-				provides="nti.externalization.interfaces.IExternalObjectDecorator" />
-
-	<subscriber factory=".decorators.ConfiguredToolExternalToolLinkSelectionDecorator"
+	<subscriber factory=".decorators.ContentSelectionLinkDecorator"
 				for="nti.ims.lti.interfaces.IConfiguredTool pyramid.interfaces.IRequest"
 				provides="nti.externalization.interfaces.IExternalObjectDecorator" />
 
@@ -93,16 +89,10 @@
 			 for=".interfaces.ILTIRequest" />
 
 	<!-- Subscribers -->
-	<subscriber handler=".subscribers.deep_linking"
+	<subscriber handler=".subscribers.resource_selection_ifaces"
 				for="nti.ims.lti.interfaces.IConfiguredTool zope.lifecycleevent.interfaces.IObjectModifiedEvent" />
 
-	<subscriber handler=".subscribers.deep_linking"
-				for="nti.ims.lti.interfaces.IConfiguredTool zope.lifecycleevent.interfaces.IObjectAddedEvent" />
-
-	<subscriber handler=".subscribers.external_tool_link_selection"
-				for="nti.ims.lti.interfaces.IConfiguredTool zope.lifecycleevent.interfaces.IObjectModifiedEvent" />
-
-	<subscriber handler=".subscribers.external_tool_link_selection"
+	<subscriber handler=".subscribers.resource_selection_ifaces"
 				for="nti.ims.lti.interfaces.IConfiguredTool zope.lifecycleevent.interfaces.IObjectAddedEvent" />
 
 </configure>

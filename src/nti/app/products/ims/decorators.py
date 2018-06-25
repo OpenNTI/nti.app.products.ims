@@ -55,21 +55,16 @@ class ConfiguredToolDeletedDecorator(AbstractRequestAwareDecorator):
         result['deleted'] = IDeletedObjectPlaceholder.providedBy(context)
 
 
-@component.adapter(IConfiguredTool)
-@interface.implementer(IExternalObjectDecorator)
-class ConfiguredToolDeepLinkingDecorator(AbstractAuthenticatedRequestAwareDecorator):
-
-    def _do_decorate_external(self, context, result):
-        if IDeepLinking.providedBy(context):
-            _links = result.setdefault(LINKS, [])
-            _links.append(Link(context, rel=CONTENT_SELECTION, elements=(DEEP_LINKING_PATH,)))
-
+CONTENT_SELECTION_URLS = ((IDeepLinking, DEEP_LINKING_PATH),
+                          (IExternalToolLinkSelection, EXTERNAL_TOOL_LINK_SELECTION_PATH),)
 
 @component.adapter(IConfiguredTool)
 @interface.implementer(IExternalObjectDecorator)
-class ConfiguredToolExternalToolLinkSelectionDecorator(AbstractAuthenticatedRequestAwareDecorator):
+class ContentSelectionLinkDecorator(AbstractAuthenticatedRequestAwareDecorator):
 
     def _do_decorate_external(self, context, result):
-        if IExternalToolLinkSelection.providedBy(context):
-            _links = result.setdefault(LINKS, [])
-            _links.append(Link(context, rel=CONTENT_SELECTION, elements=(EXTERNAL_TOOL_LINK_SELECTION_PATH,)))
+        for iface, element in CONTENT_SELECTION_URLS:
+            if iface.providedBy(context):
+                _links = result.setdefault(LINKS, [])
+                _links.append(Link(context, rel=CONTENT_SELECTION, elements=(element,)))
+                return
