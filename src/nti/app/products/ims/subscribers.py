@@ -20,33 +20,21 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
+def _get_resource_selection_params(tool):
+    return tool.config.get_ext_param('canvas.instructure.com', 'resource_selection')
 
-def _do_deep_linking(params):
-    return params['resource_selection'].get('message_type') == 'ContentItemSelectionRequest'
-
-
-def _get_params(tool):
-    params = tool.config.get_ext_params('canvas.instructure.com')
-    if params is None:
-        params = {}
-    return params
-
+RESOURCE_SELECTION = (('ContentItemSelectionRequest', IDeepLinking),
+                      (None, IExternalToolLinkSelection),)
 
 @component.adapter(IConfiguredTool, IObjectModifiedEvent)
 @component.adapter(IConfiguredTool, IObjectAddedEvent)
-def deep_linking(tool, _event):
-    params = _get_params(tool)
-    if 'resource_selection' in params and _do_deep_linking(params):
-        interface.alsoProvides(tool, IDeepLinking)
-    elif IDeepLinking.providedBy(tool):
-        interface.noLongerProvides(tool, IDeepLinking)
+def resource_selection_ifaces(tool, _event):
+    params = _get_resource_selection_params(tool)
+    resource_selection_type = params.get('message_type', None)
+    for message_type, iface in RESOURCE_SELECTION:
+        if message_type == resource_selection_type:
+            interface.alsoProvides(tool, iface)
+        elif iface.providedBy(tool):
+            interface.noLongerProvides(tool, iface)
 
 
-@component.adapter(IConfiguredTool, IObjectModifiedEvent)
-@component.adapter(IConfiguredTool, IObjectAddedEvent)
-def external_tool_link_selection(tool, _event):
-    params = _get_params(tool)
-    if 'resource_selection' in params and not _do_deep_linking(params):
-        interface.alsoProvides(tool, IExternalToolLinkSelection)
-    elif IExternalToolLinkSelection.providedBy(tool):
-        interface.noLongerProvides(tool, IExternalToolLinkSelection)
