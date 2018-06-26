@@ -21,7 +21,7 @@ __docformat__ = "restructuredtext en"
 logger = __import__('logging').getLogger(__name__)
 
 def _get_resource_selection_params(tool):
-    return tool.config.get_ext_param('canvas.instructure.com', 'resource_selection')
+    return tool.config.get_ext_param('canvas.instructure.com', 'resource_selection') or {}
 
 RESOURCE_SELECTION = (('ContentItemSelectionRequest', IDeepLinking),
                       (None, IExternalToolLinkSelection),)
