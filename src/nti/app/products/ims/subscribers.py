@@ -20,11 +20,14 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
+
 def _get_resource_selection_params(tool):
-    return tool.config.get_ext_param('canvas.instructure.com', 'resource_selection') or {}
+    return tool.config.get_ext_params('canvas.instructure.com') or {}
+
 
 RESOURCE_SELECTION = (('ContentItemSelectionRequest', IDeepLinking),
                       (None, IExternalToolLinkSelection),)
+
 
 @component.adapter(IConfiguredTool, IObjectModifiedEvent)
 @component.adapter(IConfiguredTool, IObjectAddedEvent)
@@ -34,7 +37,7 @@ def resource_selection_ifaces(tool, _event):
     for message_type, iface in RESOURCE_SELECTION:
         if message_type == resource_selection_type:
             interface.alsoProvides(tool, iface)
+            tool.selection_width = int(params.get('selection_width'))
+            tool.selection_height = int(params.get('selection_height'))
         elif iface.providedBy(tool):
             interface.noLongerProvides(tool, iface)
-
-
