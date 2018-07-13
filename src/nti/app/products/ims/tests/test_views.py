@@ -259,6 +259,7 @@ class TestToolViews(ApplicationLayerTest):
         stream.seek(0)
         stream.flush()
         response.body_file = stream
+        response.raise_for_status = lambda: None
 
         fake_response = mock_response.is_callable()
         fake_response.returns(response)

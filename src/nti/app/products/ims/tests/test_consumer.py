@@ -81,7 +81,7 @@ class TestConsumer(ApplicationLayerTest):
         tool.ntiid = 'test'
         tools.add_tool(tool)
         assert_that(tools, has_length(1))
-        tools.delete_tool(tool.ntiid)
+        tools.delete_tool(tool.__name__)
         assert_that(tools, has_length(0))
 
     def test_error_handling(self):
@@ -102,7 +102,6 @@ class TestConsumer(ApplicationLayerTest):
         with self.assertRaises(WrongContainedType) as context:
             update_from_external_object(containedObject=tool, externalObject=ext_tool)
         assert_that(str(context.exception), is_("([RequiredMissing('launch_url'),"
-                                                " RequiredMissing('description'),"
                                                 " RequiredMissing('title')],"
                                                 " 'config')"))
 
