@@ -58,6 +58,7 @@ class ConfiguredToolDeletedDecorator(AbstractRequestAwareDecorator):
 CONTENT_SELECTION_URLS = ((IDeepLinking, DEEP_LINKING_PATH),
                           (IExternalToolLinkSelection, EXTERNAL_TOOL_LINK_SELECTION_PATH),)
 
+
 @component.adapter(IConfiguredTool)
 @interface.implementer(IExternalObjectDecorator)
 class ContentSelectionLinkDecorator(AbstractAuthenticatedRequestAwareDecorator):
