@@ -216,7 +216,7 @@ class LaunchProviderView(AbstractView):
              renderer='rest',
              request_method='GET',
              context=IConfiguredToolContainer,
-             permission=nauth.ACT_READ)
+             permission=nauth.ACT_CONTENT_EDIT)
 class ConfiguredToolsGetView(AbstractAuthenticatedView):
 
     def get_tools(self):
@@ -239,7 +239,7 @@ class ConfiguredToolsGetView(AbstractAuthenticatedView):
              renderer='rest',
              request_method='POST',
              context=IConfiguredToolContainer,
-             permission=nauth.ACT_CREATE)
+             permission=nauth.ACT_CONTENT_EDIT)
 class ConfiguredToolCreateView(AbstractAuthenticatedView,
                                ModeledContentUploadRequestUtilsMixin):
 
@@ -267,7 +267,7 @@ class ConfiguredToolCreateView(AbstractAuthenticatedView,
              renderer='rest',
              request_method='DELETE',
              context=IConfiguredTool,
-             permission=nauth.ACT_DELETE)
+             permission=nauth.ACT_CONTENT_EDIT)
 class ConfiguredToolDeleteView(AbstractAuthenticatedView):
 
     def get_tools(self):
@@ -283,7 +283,7 @@ class ConfiguredToolDeleteView(AbstractAuthenticatedView):
              renderer='rest',
              request_method='PUT',
              context=IConfiguredTool,
-             permission=nauth.ACT_UPDATE)
+             permission=nauth.ACT_CONTENT_EDIT)
 class ConfiguredToolEditView(UGDPutView):
 
     def readInput(self, value=None):
