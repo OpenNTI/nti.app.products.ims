@@ -25,8 +25,6 @@ import requests
 from zope import component
 from zope import interface
 
-from zope.component import subscribers
-
 from zope.location.interfaces import IContained
 from zope.location.interfaces import LocationError
 
@@ -69,6 +67,8 @@ from nti.appserver.logon import _create_success_response
 from nti.appserver.policies.interfaces import INoAccountCreationEmail
 
 from nti.appserver.ugd_edit_views import UGDPutView
+
+from nti.base._compat import bytes_
 
 from nti.dataserver import authorization as nauth
 
@@ -354,16 +354,16 @@ def view_config(context, unused_request):
 
 def _create_tool_config_from_request(request):
     parsed = read_body_as_external_object(request)
-    config_type = parsed['formselector'].encode('ascii')
+    config_type = parsed['formselector']
     # Create from xml if uploaded
-    if config_type == 'xml_paste':
+    if config_type == u'xml_paste':
         try:
-            config = PersistentToolConfig.create_from_xml(str(parsed[config_type]))  # This has to be string type
+            config = PersistentToolConfig.create_from_xml(bytes_(parsed[config_type]))  # This has to be string type
         except LxmlSyntaxError:
             logger.exception('Bad xml config provided')
             raise hexc.HTTPBadRequest(_('Invalid configuration XML.'))
     # Retrieve and create from URL if provided
-    elif config_type == 'xml_link':
+    elif config_type == u'xml_link':
         with gevent.Timeout(3, hexc.HTTPGatewayTimeout):
             try:
                 response = requests.get(parsed[config_type])
@@ -373,7 +373,7 @@ def _create_tool_config_from_request(request):
             except:
                 raise hexc.HTTPBadGateway('Unable to reach %s', parsed[config_type])
         try:
-            config = PersistentToolConfig.create_from_xml(response.text)
+            config = PersistentToolConfig.create_from_xml(response.content)
         except LxmlSyntaxError:
             raise hexc.HTTPBadRequest(_('Invalid configuration from URL.'))
     # Manual creation
