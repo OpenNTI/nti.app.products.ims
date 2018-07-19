@@ -371,7 +371,7 @@ def _create_tool_config_from_request(request):
             except ValueError:
                 raise hexc.HTTPUnprocessableEntity('Invalid Tool Config URL')
             except:
-                raise hexc.HTTPBadGateway('Unable to reach %s', parsed[config_type])
+                raise hexc.HTTPBadGateway('Unable to reach %s' % parsed[config_type])
         try:
             config = PersistentToolConfig.create_from_xml(response.content)
         except LxmlSyntaxError:
