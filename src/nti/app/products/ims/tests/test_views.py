@@ -14,8 +14,6 @@ from hamcrest import has_entry
 from hamcrest import assert_that
 from hamcrest import has_entries
 
-from io import BytesIO
-
 import os
 
 from pyramid.response import Response
@@ -251,14 +249,11 @@ class TestToolViews(ApplicationLayerTest):
         filename = 'ltitest.xml'
         response.content_disposition = 'attachment; filename="%s"' % filename
 
-        stream = BytesIO()
         file_path = os.path.join(os.path.dirname(__file__), 'ltitest.xml')
         tree = ET.parse(file_path)
-        tree.write(stream)
-
-        stream.seek(0)
-        stream.flush()
-        response.body_file = stream
+        root = tree.getroot()
+        content = ET.tostring(root, encoding='UTF-8', method='xml')
+        response.content = content
         response.raise_for_status = lambda: None
 
         fake_response = mock_response.is_callable()
