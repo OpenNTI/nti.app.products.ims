@@ -4,13 +4,14 @@
 .. $Id$
 """
 
-from __future__ import print_function, absolute_import, division
-__docformat__ = "restructuredtext en"
-
-logger = __import__('logging').getLogger(__name__)
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 from z3c.table import table
 from z3c.table import column
+
+logger = __import__('logging').getLogger(__name__)
 
 
 class LTIToolsTable(table.Table):
@@ -22,7 +23,7 @@ class TitleColumn(column.Column):
     weight = 1
     header = 'Title'
 
-    def renderCell(self, tool):
+    def renderCell(self, tool):  # pylint: disable=arguments-differ
         return tool.title
 
 

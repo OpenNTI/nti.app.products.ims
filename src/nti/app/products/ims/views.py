@@ -4,21 +4,21 @@
 .. $Id$
 """
 
-from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
-
-__docformat__ = "restructuredtext en"
-
-logger = __import__('logging').getLogger(__name__)
+from __future__ import absolute_import
 
 import gevent
-
-from lxml.etree import LxmlSyntaxError
 
 from lti import tool_config
 
 from lti.utils import InvalidLTIRequestError
+
+from lxml.etree import LxmlSyntaxError # pylint: disable=no-name-in-module
+
+from pyramid import httpexceptions as hexc
+
+from pyramid.view import view_config
 
 import requests
 
@@ -34,10 +34,6 @@ from zope.publisher.interfaces.browser import IBrowserRequest
 
 from zope.traversing.interfaces import IPathAdapter
 from zope.traversing.interfaces import ITraversable
-
-from pyramid import httpexceptions as hexc
-
-from pyramid.view import view_config
 
 from nti.app.base.abstract_views import AbstractView
 from nti.app.base.abstract_views import AbstractAuthenticatedView
@@ -55,12 +51,12 @@ from nti.app.products.ims import LTI
 from nti.app.products.ims import SIS
 from nti.app.products.ims import TOOLS
 
+from nti.app.products.ims._table_utils import LTIToolsTable
+
 from nti.app.products.ims.interfaces import ILTIUserFactory
 
 from nti.app.products.ims.interfaces import ILTIRequest
 from nti.app.products.ims.interfaces import IToolProvider
-
-from nti.app.products.ims._table_utils import LTIToolsTable
 
 from nti.appserver.logon import _create_success_response
 
@@ -72,8 +68,8 @@ from nti.base._compat import bytes_
 
 from nti.dataserver import authorization as nauth
 
-from nti.dataserver.interfaces import IDeletedObjectPlaceholder
 from nti.dataserver.interfaces import ILinkExternalHrefOnly
+from nti.dataserver.interfaces import IDeletedObjectPlaceholder
 
 from nti.externalization.interfaces import LocatedExternalDict
 from nti.externalization.interfaces import StandardExternalFields
@@ -92,6 +88,8 @@ from nti.links.links import Link
 ITEMS = StandardExternalFields.ITEMS
 TOTAL = StandardExternalFields.TOTAL
 ITEM_COUNT = StandardExternalFields.ITEM_COUNT
+
+logger = __import__('logging').getLogger(__name__)
 
 
 @interface.implementer(IPathAdapter, IContained)
@@ -197,6 +195,7 @@ class LaunchProviderView(AbstractView):
             # Mark the request to not send an account creation email
             interface.alsoProvides(lti_request, INoAccountCreationEmail)
             user_factory = ILTIUserFactory(lti_request)
+            # pylint: disable=too-many-function-args 
             user = user_factory.user_for_request(lti_request)
         except InvalidLTIRequestError:
             logger.exception('Invalid LTI Request')
@@ -226,6 +225,7 @@ class ConfiguredToolsGetView(AbstractAuthenticatedView):
         tools = self.get_tools()
         result = LocatedExternalDict()
         items = []
+        # pylint: disable=no-member
         for tool in tools.values():
             if IDeletedObjectPlaceholder.providedBy(tool):
                 continue
@@ -247,7 +247,7 @@ class ConfiguredToolCreateView(AbstractAuthenticatedView,
         return self.context
 
     def readInput(self, value=None):
-        result = super(ConfiguredToolCreateView, self).readInput()
+        result = super(ConfiguredToolCreateView, self).readInput(value)
         config = _create_tool_config_from_request(self.request)
         result[u'config'] = config
         return result
@@ -255,8 +255,9 @@ class ConfiguredToolCreateView(AbstractAuthenticatedView,
     def __call__(self):
         try:
             tool = self.readCreateUpdateContentObject(self.remoteUser)
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             handle_possible_validation_error(self.request, e)
+        # pylint: disable=no-member
         tools = self.get_tools()
         tools.add_tool(tool)
         msg = _(u'Tool created successfully')
@@ -271,6 +272,7 @@ class ConfiguredToolCreateView(AbstractAuthenticatedView,
 class ConfiguredToolDeleteView(AbstractAuthenticatedView):
 
     def get_tools(self):
+        # pylint: disable=no-member
         return self.context.__parent__
 
     def __call__(self):
@@ -287,7 +289,7 @@ class ConfiguredToolDeleteView(AbstractAuthenticatedView):
 class ConfiguredToolEditView(UGDPutView):
 
     def readInput(self, value=None):
-        result = super(ConfiguredToolEditView, self).readInput()
+        result = super(ConfiguredToolEditView, self).readInput(value)
         config = _create_tool_config_from_request(self.request)
         result[u'config'] = config
         return result
@@ -344,7 +346,7 @@ def edit(context, request):
              name='tool_config_view',
              context=IConfiguredTool,
              permission=nauth.ACT_READ)
-def view_config(context, unused_request):
+def view_config_attributes(context, unused_request):
     config = context.config
     attributes = dict()
     for attr in tool_config.VALID_ATTRIBUTES:

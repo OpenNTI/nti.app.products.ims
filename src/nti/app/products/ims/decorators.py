@@ -1,7 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+.. $Id$
+"""
 
-from __future__ import print_function, absolute_import, division
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 from zope import component
 from zope import interface
@@ -30,13 +35,11 @@ from nti.links import Link
 
 LINKS = StandardExternalFields.LINKS
 
-__docformat__ = "restructuredtext en"
-
-logger = __import__('logging').getLogger(__name__)
-
 DEEP_LINKING_PATH = '@@deep_linking'
 
 EXTERNAL_TOOL_LINK_SELECTION_PATH = '@@external_tool_link_selection'
+
+logger = __import__('logging').getLogger(__name__)
 
 
 @component.adapter(IConfiguredTool)
@@ -67,5 +70,7 @@ class ContentSelectionLinkDecorator(AbstractAuthenticatedRequestAwareDecorator):
         for iface, element in CONTENT_SELECTION_URLS:
             if iface.providedBy(context):
                 _links = result.setdefault(LINKS, [])
-                _links.append(Link(context, rel=CONTENT_SELECTION, elements=(element,)))
+                _links.append(
+                    Link(context, rel=CONTENT_SELECTION, elements=(element,))
+                )
                 return

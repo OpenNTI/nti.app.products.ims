@@ -4,19 +4,18 @@
 .. $Id$
 """
 
-from __future__ import print_function, absolute_import, division
-__docformat__ = "restructuredtext en"
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
-logger = __import__('logging').getLogger(__name__)
+from oauthlib.oauth1.rfc5849.request_validator import RequestValidator
+
+from oauthlib.oauth1.rfc5849.utils import UNICODE_ASCII_CHARACTER_SET
 
 import transaction
 
 from zope import component
 from zope import interface
-
-from oauthlib.oauth1.rfc5849.request_validator import RequestValidator
-
-from oauthlib.oauth1.rfc5849.utils import UNICODE_ASCII_CHARACTER_SET
 
 from nti.app.products.ims.interfaces import IOAuthNonceRecorder
 from nti.app.products.ims.interfaces import IOAuthRequestValidator
@@ -28,6 +27,8 @@ from nti.transactions.transactions import ObjectDataManager
 from nti.ims.lti.interfaces import IOAuthConsumers
 
 LTI_NONCES = '++etc++ims++queue++nti_lti_nonces'
+
+logger = __import__('logging').getLogger(__name__)
 
 
 class _AbortingDataManager(ObjectDataManager):
@@ -113,6 +114,8 @@ class OAuthSignatureOnlyValidator(RequestValidator):
     @property
     def dummy_client(self):
         return _DUMMY_CLIENT_KEY
+
+    # pylint: disable=arguments-differ
 
     def get_client_secret(self, client_key, unused_request):
         # Here client_key is something that has been returned as
