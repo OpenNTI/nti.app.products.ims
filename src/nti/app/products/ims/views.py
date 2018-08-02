@@ -346,7 +346,7 @@ def edit(context, request):
              name='tool_config_view',
              context=IConfiguredTool,
              permission=nauth.ACT_READ)
-def view_config(context, unused_request):
+def view_config_attributes(context, unused_request):
     config = context.config
     attributes = dict()
     for attr in tool_config.VALID_ATTRIBUTES:
