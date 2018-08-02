@@ -4,10 +4,9 @@
 .. $Id$
 """
 
-from __future__ import print_function, absolute_import, division
-__docformat__ = "restructuredtext en"
-
-logger = __import__('logging').getLogger(__name__)
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 from lti import InvalidLTIRequestError
 
@@ -20,6 +19,8 @@ from nti.app.products.ims.interfaces import ILTIRequest
 from nti.app.products.ims.interfaces import ILTIUserFactory
 
 from nti.ims.lti import adapt_accounting_for_consumer
+
+logger = __import__('logging').getLogger(__name__)
 
 
 @interface.implementer(ILTIUserFactory)
