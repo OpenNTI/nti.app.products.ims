@@ -1,1 +1,10 @@
-<root><doc><description>test_desc</description><title>fake_title</title><secret>test_secret</secret><secure_launch_url>https://www.secure_test_url.com</secure_launch_url><launch_url>http://www.test_url.com</launch_url><consumer_key>test_key</consumer_key></doc></root>
+<root>
+	<doc>
+		<description>test_desc</description>
+		<title>fake_title</title>
+		<secret>test_secret</secret>
+		<secure_launch_url>https://www.secure_test_url.com</secure_launch_url>
+		<launch_url>http://www.test_url.com</launch_url>
+		<consumer_key>test_key</consumer_key>
+	</doc>
+</root>
