@@ -10,18 +10,15 @@ from __future__ import absolute_import
 
 # pylint: disable=inherit-non-class,expression-not-assigned
 
+from pyramid.interfaces import IRequest
+
 from zope import interface
 
 from nti.ims.lti.interfaces import ITool
 
 
-class ILTIRequest(interface.Interface):
-
-    url = interface.Attribute('The url of the lti request')
-
-    params = interface.Attribute('The parameters of the lti request')
-
-    headers = interface.Attribute('The headers of the lti request')
+class ILTIRequest(IRequest):
+    pass
 
 
 class IToolProvider(ITool):
