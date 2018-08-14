@@ -42,5 +42,4 @@ class TestPyramidLTIRequest(unittest.TestCase):
 
         lti_request = ILTIRequest(req)
 
-        assert_that(lti_request.url, is_('http://example.com'))
         assert_that(lti_request.params, has_entries('foo', 'bar'))

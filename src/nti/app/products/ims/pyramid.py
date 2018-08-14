@@ -16,9 +16,6 @@ logger = __import__('logging').getLogger(__name__)
 
 
 @interface.implementer(ILTIRequest)
-class PyramidLTIRequest(object):
-
-    def __init__(self, request):
-        self.headers = request.headers
-        self.params = dict(request.params)
-        self.url = request.url.rsplit('?', 1)[0]
+def PyramidLTIRequest(request):
+    interface.alsoProvides(request, ILTIRequest)
+    return request

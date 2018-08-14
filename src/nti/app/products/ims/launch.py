@@ -58,8 +58,8 @@ def _web_root():
 
 def _provider_factory(unused_tool, request):
     return LaunchProvider.from_unpacked_request(None,
-                                                request.params,
-                                                request.url,
+                                                dict(request.params),
+                                                request.url.rsplit('?', 1)[0],
                                                 request.headers)
 
 
