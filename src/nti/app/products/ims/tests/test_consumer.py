@@ -169,10 +169,6 @@ class TestConsumer(ApplicationLayerTest):
         ext_tool[u'config'] = config
         with self.assertRaises(WrongContainedType) as context:
             update_from_external_object(containedObject=tool, externalObject=ext_tool)
-        assert_that(str(context.exception), is_("([InvalidURI('test.com', u'The specified URL is not valid.',"
-                                                " 'launch_url'), InvalidURI('test.com',"
-                                                " u'The specified URL is not valid.',"
-                                                " 'secure_launch_url')], 'config')"))
 
     def test_subscribers(self):
         tool = ConfiguredTool()
