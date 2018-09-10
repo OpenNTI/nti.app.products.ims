@@ -27,8 +27,9 @@ from nti.ims.lti.consumer import ConfiguredTool
 from nti.ims.lti.consumer import PersistentToolConfig
 from nti.ims.lti.consumer import ConfiguredToolContainer
 
-from nti.ims.lti.interfaces import IDeepLinking
-from nti.ims.lti.interfaces import IExternalToolLinkSelection
+from nti.ims.lti.interfaces import IAssignmentSelection
+from nti.ims.lti.interfaces import ILinkSelection
+from nti.ims.lti.interfaces import IResourceSelection
 
 from nti.testing.matchers import validly_provides
 from nti.testing.matchers import verifiably_provides
@@ -175,23 +176,29 @@ class TestConsumer(ApplicationLayerTest):
         config = PersistentToolConfig.create_from_xml(RESOURCE_SELECTION_XML)
         tool.config = config
         notify(ObjectAddedEvent(tool, "Add External Tool Link Selection extension"))
-        assert_that(tool, does_not(verifiably_provides(IDeepLinking)))
-        assert_that(tool, does_not(validly_provides(IDeepLinking)))
-        assert_that(tool, verifiably_provides(IExternalToolLinkSelection))
-        assert_that(tool, validly_provides(IExternalToolLinkSelection))
+        assert_that(tool, does_not(verifiably_provides(IAssignmentSelection)))
+        assert_that(tool, does_not(validly_provides(IAssignmentSelection)))
+        assert_that(tool, does_not(verifiably_provides(ILinkSelection)))
+        assert_that(tool, does_not(validly_provides(ILinkSelection)))
+        assert_that(tool, verifiably_provides(IResourceSelection))
+        assert_that(tool, validly_provides(IResourceSelection))
 
         config = PersistentToolConfig(**KWARGS)
         tool.config = config
         notify(ObjectModifiedEvent(tool, "Remove External Tool Link Selection extension"))
-        assert_that(tool, does_not(verifiably_provides(IDeepLinking)))
-        assert_that(tool, does_not(validly_provides(IDeepLinking)))
-        assert_that(tool, does_not(verifiably_provides(IExternalToolLinkSelection)))
-        assert_that(tool, does_not(validly_provides(IExternalToolLinkSelection)))
+        assert_that(tool, does_not(verifiably_provides(IAssignmentSelection)))
+        assert_that(tool, does_not(validly_provides(IAssignmentSelection)))
+        assert_that(tool, does_not(verifiably_provides(ILinkSelection)))
+        assert_that(tool, does_not(validly_provides(ILinkSelection)))
+        assert_that(tool, does_not(verifiably_provides(IResourceSelection)))
+        assert_that(tool, does_not(validly_provides(IResourceSelection)))
 
         config = PersistentToolConfig.create_from_xml(DEEP_LINKING_XML)
         tool.config = config
         notify(ObjectAddedEvent(tool, "Add Deep Linking extension"))
-        assert_that(tool, verifiably_provides(IDeepLinking))
-        assert_that(tool, validly_provides(IDeepLinking))
-        assert_that(tool, does_not(verifiably_provides(IExternalToolLinkSelection)))
-        assert_that(tool, does_not(validly_provides(IExternalToolLinkSelection)))
+        assert_that(tool, verifiably_provides(ILinkSelection))
+        assert_that(tool, validly_provides(ILinkSelection))
+        assert_that(tool, verifiably_provides(IAssignmentSelection))
+        assert_that(tool, validly_provides(IAssignmentSelection))
+        assert_that(tool, does_not(verifiably_provides(IResourceSelection)))
+        assert_that(tool, does_not(validly_provides(IResourceSelection)))

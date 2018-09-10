@@ -15,18 +15,15 @@ from zope import interface
 from zope.lifecycleevent import IObjectAddedEvent
 from zope.lifecycleevent import IObjectModifiedEvent
 
-from nti.ims.lti.interfaces import IConfiguredTool
-from nti.ims.lti.interfaces import IDeepLinking
-from nti.ims.lti.interfaces import IExternalToolLinkSelection
+from nti.app.products.ims import SUPPORTED_LTI_EXTENSIONS
 
-DECORATOR_IFACES = (('link_selection', IDeepLinking),
-                    ('resource_selection', IExternalToolLinkSelection),)
+from nti.ims.lti.interfaces import IConfiguredTool
 
 logger = __import__('logging').getLogger(__name__)
 
 
 def extension_ifaces(tool, _event):
-    for (key, iface) in DECORATOR_IFACES:
+    for (key, iface, unused_rel) in SUPPORTED_LTI_EXTENSIONS:
         params = tool.config.get_ext_param('canvas.instructure.com',
                                            key)
         if params:
