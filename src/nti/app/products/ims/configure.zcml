@@ -37,15 +37,15 @@
 	<!-- Decorators -->
 	<subscriber factory=".decorators.ConfiguredToolEditLinkDecorator"
 				for="nti.ims.lti.interfaces.IConfiguredTool pyramid.interfaces.IRequest"
-				provides="nti.externalization.interfaces.IExternalObjectDecorator" />
+				provides="nti.externalization.interfaces.IExternalMappingDecorator" />
 
 	<subscriber factory=".decorators.ConfiguredToolDeletedDecorator"
 				for="nti.ims.lti.interfaces.IConfiguredTool pyramid.interfaces.IRequest"
-				provides="nti.externalization.interfaces.IExternalObjectDecorator" />
+				provides="nti.externalization.interfaces.IExternalMappingDecorator" />
 
 	<subscriber factory=".decorators.ContentSelectionLinkDecorator"
 				for="nti.ims.lti.interfaces.IConfiguredTool pyramid.interfaces.IRequest"
-				provides="nti.externalization.interfaces.IExternalObjectDecorator" />
+				provides="nti.externalization.interfaces.IExternalMappingDecorator" />
 
 	<!-- Pyramid traversal -->
 	<adapter name="IMS"
@@ -89,10 +89,10 @@
 			 for=".interfaces.ILTIRequest" />
 
 	<!-- Subscribers -->
-	<subscriber handler=".subscribers.resource_selection_ifaces"
+	<subscriber handler=".subscribers.tool_modified_event"
 				for="nti.ims.lti.interfaces.IConfiguredTool zope.lifecycleevent.interfaces.IObjectModifiedEvent" />
 
-	<subscriber handler=".subscribers.resource_selection_ifaces"
+	<subscriber handler=".subscribers.tool_added_event"
 				for="nti.ims.lti.interfaces.IConfiguredTool zope.lifecycleevent.interfaces.IObjectAddedEvent" />
 
 </configure>
