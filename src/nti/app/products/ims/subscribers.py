@@ -19,21 +19,27 @@ from nti.ims.lti.interfaces import IConfiguredTool
 from nti.ims.lti.interfaces import IDeepLinking
 from nti.ims.lti.interfaces import IExternalToolLinkSelection
 
-RESOURCE_SELECTION = (('ContentItemSelectionRequest', IDeepLinking),
-                      (None, IExternalToolLinkSelection),)
+DECORATOR_IFACES = (('link_selection', IDeepLinking),
+                    ('resource_selection', IExternalToolLinkSelection),)
 
 logger = __import__('logging').getLogger(__name__)
 
 
+def extension_ifaces(tool, _event):
+    for (key, iface) in DECORATOR_IFACES:
+        params = tool.config.get_ext_param('canvas.instructure.com',
+                                           key)
+        if params:
+            interface.alsoProvides(tool, iface)
+        elif iface.providedBy(tool):
+            interface.noLongerProvides(tool, iface)
+
+
 @component.adapter(IConfiguredTool, IObjectModifiedEvent)
+def tool_modified_event(tool, event):
+    extension_ifaces(tool, event)
+
+
 @component.adapter(IConfiguredTool, IObjectAddedEvent)
-def resource_selection_ifaces(tool, _event):
-    params = tool.config.get_ext_param('canvas.instructure.com',
-                                       'resource_selection')
-    if params is not None:
-        resource_selection_type = params.get('message_type', None)
-        for message_type, iface in RESOURCE_SELECTION:
-            if message_type == resource_selection_type:
-                interface.alsoProvides(tool, iface)
-            elif iface.providedBy(tool):
-                interface.noLongerProvides(tool, iface)
+def tool_added_event(tool, event):
+    extension_ifaces(tool, event)

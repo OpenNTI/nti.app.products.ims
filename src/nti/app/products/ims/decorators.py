@@ -24,7 +24,7 @@ from nti.dataserver import authorization as nauth
 
 from nti.dataserver.interfaces import IDeletedObjectPlaceholder
 
-from nti.externalization.interfaces import IExternalObjectDecorator
+from nti.externalization.interfaces import IExternalMappingDecorator
 from nti.externalization.interfaces import StandardExternalFields
 
 from nti.ims.lti.interfaces import IConfiguredTool
@@ -43,7 +43,7 @@ logger = __import__('logging').getLogger(__name__)
 
 
 @component.adapter(IConfiguredTool)
-@interface.implementer(IExternalObjectDecorator)
+@interface.implementer(IExternalMappingDecorator)
 class ConfiguredToolEditLinkDecorator(EditLinkDecorator):
 
     def _has_permission(self, context):
@@ -51,26 +51,27 @@ class ConfiguredToolEditLinkDecorator(EditLinkDecorator):
 
 
 @component.adapter(IConfiguredTool)
-@interface.implementer(IExternalObjectDecorator)
+@interface.implementer(IExternalMappingDecorator)
 class ConfiguredToolDeletedDecorator(AbstractRequestAwareDecorator):
 
     def _do_decorate_external(self, context, result):
         result['deleted'] = IDeletedObjectPlaceholder.providedBy(context)
 
 
-CONTENT_SELECTION_URLS = ((IDeepLinking, DEEP_LINKING_PATH),
-                          (IExternalToolLinkSelection, EXTERNAL_TOOL_LINK_SELECTION_PATH),)
+# Register additional urls here for decorating assignment_selection etc
+
+LTI_EXTENSION_URLS = ((IDeepLinking, DEEP_LINKING_PATH),
+                      (IExternalToolLinkSelection, EXTERNAL_TOOL_LINK_SELECTION_PATH),)
 
 
 @component.adapter(IConfiguredTool)
-@interface.implementer(IExternalObjectDecorator)
+@interface.implementer(IExternalMappingDecorator)
 class ContentSelectionLinkDecorator(AbstractAuthenticatedRequestAwareDecorator):
 
     def _do_decorate_external(self, context, result):
-        for iface, element in CONTENT_SELECTION_URLS:
+        for iface, element in LTI_EXTENSION_URLS:
             if iface.providedBy(context):
                 _links = result.setdefault(LINKS, [])
                 _links.append(
                     Link(context, rel=CONTENT_SELECTION, elements=(element,))
                 )
-                return
