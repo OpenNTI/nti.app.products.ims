@@ -45,7 +45,7 @@ class TestRedisNonceTracking(unittest.TestCase):
 
     def setUp(self):
         self.recorder = RedisNonceRecorder()
-        self.recorder._redis = fakeredis.FakeStrictRedis(db=101)
+        self.recorder._redis = fakeredis.FakeStrictRedis()
 
     def tearDown(self):
         self.recorder._redis.flushall()
