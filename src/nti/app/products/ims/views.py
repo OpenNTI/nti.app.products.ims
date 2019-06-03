@@ -18,6 +18,8 @@ from lxml.etree import LxmlSyntaxError # pylint: disable=no-name-in-module
 
 from pyramid import httpexceptions as hexc
 
+from pyramid.threadlocal import get_current_request
+
 from pyramid.view import view_config
 
 import requests
@@ -39,6 +41,7 @@ from nti.app.base.abstract_views import AbstractView
 from nti.app.base.abstract_views import AbstractAuthenticatedView
 
 from nti.app.externalization.error import handle_possible_validation_error
+from nti.app.externalization.error import raise_json_error
 
 from nti.app.externalization.internalization import read_body_as_external_object
 
@@ -354,6 +357,11 @@ def view_config_attributes(context, unused_request):
     return {'attrs': attributes}
 
 
+def _raise_error(data, factory=hexc.HTTPBadRequest, request=None):
+    request = request or get_current_request()
+    raise_json_error(request, factory, data, None)
+
+
 def _create_tool_config_from_request(request):
     parsed = read_body_as_external_object(request)
     config_type = parsed['formselector']
@@ -363,7 +371,12 @@ def _create_tool_config_from_request(request):
             config = PersistentToolConfig.create_from_xml(bytes_(parsed[config_type]))  # This has to be string type
         except LxmlSyntaxError:
             logger.exception('Bad xml config provided')
-            raise hexc.HTTPBadRequest(_('Invalid configuration XML.'))
+            _raise_error({'code': 'InvalidConfigurationXML',
+                          'field': 'xml_paste',
+                          'message': _('Invalid configuration XML.')
+                         },
+                         request=request)
+
     # Retrieve and create from URL if provided
     elif config_type == u'xml_link':
         with gevent.Timeout(3, hexc.HTTPGatewayTimeout):
@@ -371,13 +384,28 @@ def _create_tool_config_from_request(request):
                 response = requests.get(parsed[config_type])
                 response.raise_for_status()
             except ValueError:
-                raise hexc.HTTPUnprocessableEntity('Invalid Tool Config URL')
+                _raise_error({'code': 'InvalidToolConfigURL',
+                              'field': 'xml_link',
+                              'message': _('Invalid Tool Config URL.')
+                             },
+                             factory=hexc.HTTPUnprocessableEntity,
+                             request=request)
             except:
-                raise hexc.HTTPBadGateway('Unable to reach %s' % parsed[config_type])
+                _raise_error({'code': 'InvalidToolConfigURL',
+                              'field': 'xml_link',
+                              'message': 'Unable to reach %s' % parsed[config_type]
+                             },
+                             factory=hexc.HTTPBadGateway,
+                             request=request)
         try:
             config = PersistentToolConfig.create_from_xml(response.content)
         except LxmlSyntaxError:
-            raise hexc.HTTPBadRequest(_('Invalid configuration from URL.'))
+            _raise_error({'code': 'InvalidToolConfigURL',
+                          'field': 'xml_link',
+                          'message': _('Invalid configuration from URL.')
+                         },
+                         factory=hexc.HTTPBadRequest,
+                         request=request)
     # Manual creation
     else:
         config = PersistentToolConfig(**parsed)
