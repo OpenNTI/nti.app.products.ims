@@ -66,7 +66,8 @@ class TestRedisNonceTracking(unittest.TestCase):
         self.recorder.record_nonce_received('foo')
         # If the transaction gets aborted the recorder should
         # revert and the nonce is available
-        transaction.get().abort()
+        transaction.abort()
+        transaction.begin()
         self.recorder.record_nonce_received('foo')
 
 
