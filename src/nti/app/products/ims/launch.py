@@ -22,7 +22,7 @@ from nti.app.products.ims.provider import ToolProvider
 
 from nti.appserver.interfaces import IApplicationSettings
 
-from nti.appserver.policies.interfaces import ISitePolicyUserEventListener
+from nti.appserver.brand.interfaces import ISiteBrand
 
 from nti.ims.lti.interfaces import ITool
 
@@ -38,12 +38,12 @@ class LaunchTool(object):
     __name__ = 'launch'
 
     @property
-    def site_policy_listener(self):
-        return component.getUtility(ISitePolicyUserEventListener)
+    def site_brand(self):
+        return component.queryUtility(ISiteBrand)
 
     @property
     def title(self):
-        return u'Launch ' + getattr(self.site_policy_listener, 'BRAND', u'')
+        return u'Launch ' + getattr(self.site_brand, 'brand_name', u'')
 
     @property
     def description(self):
