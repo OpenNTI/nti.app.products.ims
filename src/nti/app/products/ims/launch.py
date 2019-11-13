@@ -22,7 +22,7 @@ from nti.app.products.ims.provider import ToolProvider
 
 from nti.appserver.interfaces import IApplicationSettings
 
-from nti.appserver.brand.interfaces import ISiteBrand
+from nti.appserver.brand.utils import get_site_brand_name
 
 from nti.ims.lti.interfaces import ITool
 
@@ -38,12 +38,8 @@ class LaunchTool(object):
     __name__ = 'launch'
 
     @property
-    def site_brand(self):
-        return component.queryUtility(ISiteBrand)
-
-    @property
     def title(self):
-        return u'Launch ' + getattr(self.site_brand, 'brand_name', u'')
+        return u'Launch ' + get_site_brand_name()
 
     @property
     def description(self):
