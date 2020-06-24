@@ -36,6 +36,8 @@ from nti.ims.lti.oauth import OAuthConsumer
 from nti.app.products.ims.tests import SharedConfiguringTestLayer
 from nti.app.products.ims.tests import NonDevModeConfiguringTestLayer
 
+from nti.dataserver.tests.mock_dataserver import WithMockDS
+from nti.dataserver.tests.mock_dataserver import mock_db_trans
 from nti.dataserver.tests.mock_dataserver import WithMockDSTrans
 
 
@@ -61,14 +63,15 @@ class TestRedisNonceTracking(unittest.TestCase):
         assert_that(calling(self.recorder.record_nonce_received).with_args('foo'),
                     raises(KeyError))
 
-    @WithMockDSTrans
+    @WithMockDS
     def test_recording_aborted(self):
-        self.recorder.record_nonce_received('foo')
-        # If the transaction gets aborted the recorder should
-        # revert and the nonce is available
-        transaction.abort()
-        transaction.begin()
-        self.recorder.record_nonce_received('foo')
+        with mock_db_trans():
+            self.recorder.record_nonce_received('foo')
+            # If the transaction gets aborted the recorder should
+            # revert and the nonce is available
+            transaction.doom()
+        with mock_db_trans():
+            self.recorder.record_nonce_received('foo')
 
 
 class TestValidator(unittest.TestCase):
