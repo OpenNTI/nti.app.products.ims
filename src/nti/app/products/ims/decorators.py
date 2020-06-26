@@ -11,7 +11,7 @@ from __future__ import absolute_import
 from zope import component
 from zope import interface
 
-from nti.app.products.ims import CONTENT_SELECTION
+from nti.app.products.ims import SUPPORTED_LTI_EXTENSIONS
 
 from nti.app.renderers.decorators import AbstractRequestAwareDecorator
 from nti.app.renderers.decorators import AbstractAuthenticatedRequestAwareDecorator
@@ -28,16 +28,12 @@ from nti.externalization.interfaces import IExternalMappingDecorator
 from nti.externalization.interfaces import StandardExternalFields
 
 from nti.ims.lti.interfaces import IConfiguredTool
-from nti.ims.lti.interfaces import IDeepLinking
-from nti.ims.lti.interfaces import IExternalToolLinkSelection
+from nti.ims.lti.interfaces import ISelectionRequiredConfiguredTool
 
+from nti.links import FramedLink
 from nti.links import Link
 
 LINKS = StandardExternalFields.LINKS
-
-DEEP_LINKING_PATH = '@@deep_linking'
-
-EXTERNAL_TOOL_LINK_SELECTION_PATH = '@@external_tool_link_selection'
 
 logger = __import__('logging').getLogger(__name__)
 
@@ -58,20 +54,42 @@ class ConfiguredToolDeletedDecorator(AbstractRequestAwareDecorator):
         result['deleted'] = IDeletedObjectPlaceholder.providedBy(context)
 
 
-# Register additional urls here for decorating assignment_selection etc
-
-LTI_EXTENSION_URLS = ((IDeepLinking, DEEP_LINKING_PATH),
-                      (IExternalToolLinkSelection, EXTERNAL_TOOL_LINK_SELECTION_PATH),)
+def _get_selection_dimensions(ext_key, config, default=None):
+    ext_params = config.get_ext_param('canvas.instructure.com',
+                                      ext_key)
+    height = ext_params.get('selection_height', default)
+    width = ext_params.get('selection_width', default)
+    return height, width
 
 
 @component.adapter(IConfiguredTool)
 @interface.implementer(IExternalMappingDecorator)
 class ContentSelectionLinkDecorator(AbstractAuthenticatedRequestAwareDecorator):
+    """
+    Decorate rels for specific lti extensions, and a generic rel if content selection
+    is required
+    """
 
     def _do_decorate_external(self, context, result):
-        for iface, element in LTI_EXTENSION_URLS:
+        for (ext_key, iface, href) in SUPPORTED_LTI_EXTENSIONS:
             if iface.providedBy(context):
+                # Change the snake case to camel case ('resource_selection' => 'ResourceSelection')
+                rel = ''.join([word.capitalize() for word in ext_key.split('_')])
                 _links = result.setdefault(LINKS, [])
+                height, width = _get_selection_dimensions(ext_key, context.config, default=500)
                 _links.append(
-                    Link(context, rel=CONTENT_SELECTION, elements=(element,))
+                    FramedLink(context, height=height, width=width, rel=rel, elements=(href,))
                 )
+        if ISelectionRequiredConfiguredTool.providedBy(context):
+            _links = result.setdefault(LINKS, [])
+            height = width = 500
+            for ext_key in ('resource_selection', 'link_selection'):
+                tmp_height, tmp_width = _get_selection_dimensions(ext_key, context.config)
+                if tmp_height and tmp_width:
+                    width = tmp_width
+                    height = tmp_height
+                    break
+            _links.append(
+                FramedLink(context, height=height, width=width,
+                           rel='ContentSelection', elements=('@@content_selection',))
+            )
