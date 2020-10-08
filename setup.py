@@ -7,6 +7,13 @@ entry_points = {
     ],
 }
 
+TESTS_REQUIRE = [
+    'fudge',
+    'nti.dataserver[test]',
+    'nti.testing',
+    'zope.dottedname',
+    'zope.testrunner',
+]
 
 def _read(fname):
     with codecs.open(fname, encoding='utf-8') as f:
@@ -39,5 +46,8 @@ setup(
         'setuptools',
         'nti.ims',
     ],
+    extras_require={
+        'test': TESTS_REQUIRE
+    },
     entry_points=entry_points,
 )
