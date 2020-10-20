@@ -410,3 +410,34 @@ def _create_tool_config_from_request(request):
     else:
         config = PersistentToolConfig(**parsed)
     return config
+
+
+@view_config(route_name='objects.generic.traversal',
+             renderer='rest',
+             request_method='POST')
+class OutcomePostbackView(AbstractView):
+
+    def __call__(self):
+        lti_request = ILTIRequest(self.request)
+
+        try:
+           #Todo Validate
+            pass
+        except InvalidLTIRequestError:
+            logger.exception('Invalid Outcome Service Request')
+            return hexc.HTTPBadRequest()
+
+        outcome_request = IOutcomeRequest(lti_request)
+        resuilt_sourcedid = IResultSourcedId(outcome_request)
+
+        user = IUser(result_sourcedid)
+        service = IOutcomeService(result_sourcedid)
+
+        response = outcome_request()
+
+        #Create a response
+        self.request.response.body = response.generate_response_xml()
+        self.request.response.content_type = 'application/xml'
+        self.request.response.status_code = 200
+        return self.request.response
+        
