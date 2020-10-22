@@ -53,6 +53,7 @@ from nti.app.products.ims import IMS
 from nti.app.products.ims import LTI
 from nti.app.products.ims import SIS
 from nti.app.products.ims import TOOLS
+from nti.app.products.ims import VIEW_LTI_OUTCOMES
 
 from nti.app.products.ims._table_utils import LTIToolsTable
 
@@ -198,7 +199,7 @@ class LaunchProviderView(AbstractView):
             # Mark the request to not send an account creation email
             interface.alsoProvides(lti_request, INoAccountCreationEmail)
             user_factory = ILTIUserFactory(lti_request)
-            # pylint: disable=too-many-function-args 
+            # pylint: disable=too-many-function-args
             user = user_factory.user_for_request(lti_request)
         except InvalidLTIRequestError:
             logger.exception('Invalid LTI Request')
@@ -414,6 +415,8 @@ def _create_tool_config_from_request(request):
 
 @view_config(route_name='objects.generic.traversal',
              renderer='rest',
+             context=LTIPathAdapter,
+             name=VIEW_LTI_OUTCOMES,
              request_method='POST')
 class OutcomePostbackView(AbstractView):
 
@@ -421,7 +424,7 @@ class OutcomePostbackView(AbstractView):
         lti_request = ILTIRequest(self.request)
 
         try:
-           #Todo Validate
+            #: TODO Validate
             pass
         except InvalidLTIRequestError:
             logger.exception('Invalid Outcome Service Request')
@@ -440,4 +443,4 @@ class OutcomePostbackView(AbstractView):
         self.request.response.content_type = 'application/xml'
         self.request.response.status_code = 200
         return self.request.response
-        
+
