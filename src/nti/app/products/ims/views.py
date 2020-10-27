@@ -70,6 +70,8 @@ from nti.appserver.ugd_edit_views import UGDPutView
 
 from nti.base._compat import bytes_
 
+from nti.coremetadata.interfaces import IUser
+
 from nti.dataserver import authorization as nauth
 
 from nti.dataserver.interfaces import ILinkExternalHrefOnly
@@ -82,6 +84,8 @@ from nti.ims.lti.consumer import PersistentToolConfig
 
 from nti.ims.lti.interfaces import ITool
 from nti.ims.lti.interfaces import IConfiguredTool
+from nti.ims.lti.interfaces import IOutcomeService
+from nti.ims.lti.interfaces import IOutcomeRequest
 from nti.ims.lti.interfaces import IToolConfigFactory
 from nti.ims.lti.interfaces import IConfiguredToolContainer
 
@@ -422,23 +426,29 @@ class OutcomePostbackView(AbstractView):
 
     def __call__(self):
         lti_request = ILTIRequest(self.request)
+        outcome_request = IOutcomeRequest(lti_request)
+        result_sourcedid = outcome_request.result_id
+        __traceback_info__ = result_sourcedid
+        tool = ITool(result_sourcedid, None)
 
         try:
-            #: TODO Validate
-            pass
+            provider = component.queryMultiAdapter((tool, lti_request),
+                                                   IToolProvider)
+            if not provider:
+                return hexc.HTTPNotFound()
+            provider.valid_request()
         except InvalidLTIRequestError:
             logger.exception('Invalid Outcome Service Request')
             return hexc.HTTPBadRequest()
 
-        outcome_request = IOutcomeRequest(lti_request)
-        resuilt_sourcedid = IResultSourcedId(outcome_request)
-
         user = IUser(result_sourcedid)
         service = IOutcomeService(result_sourcedid)
 
+        # TODO: Store result persistently
+
         response = outcome_request()
 
-        #Create a response
+        # Create a response
         self.request.response.body = response.generate_response_xml()
         self.request.response.content_type = 'application/xml'
         self.request.response.status_code = 200

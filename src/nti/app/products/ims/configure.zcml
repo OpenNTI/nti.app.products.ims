@@ -71,6 +71,11 @@
 			 provides="zope.traversing.interfaces.IPathAdapter"
 			 for=".views.LTIPathAdapter pyramid.interfaces.IRequest" />
 
+    <!-- Outcomes -->
+    <adapter factory=".outcomes._create_outcome_request"
+             provides="nti.ims.lti.interfaces.IOutcomeRequest"
+             for=".interfaces.ILTIRequest" />
+
 	<!-- Register our tool, config factory, and provider for a basic Launch Tool -->
 	<adapter factory="nti.ims.lti.config.ToolConfigFactory"
 			 provides="nti.ims.lti.interfaces.IToolConfigFactory"
