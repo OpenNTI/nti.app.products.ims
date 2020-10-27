@@ -24,8 +24,7 @@ from nti.ims.lti.interfaces import IOutcomeReplaceRequest
 
 from nti.testing.matchers import validly_provides
 
-delete_xml = """
-        <?xml version="1.0" encoding="UTF-8"?>
+delete_xml = """<?xml version="1.0" encoding="UTF-8"?>
         <imsx_POXEnvelopeRequest xmlns="http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0">
         <imsx_POXHeader>
           <imsx_POXRequestHeaderInfo>
@@ -46,8 +45,7 @@ delete_xml = """
         """
 
 
-read_xml = """
-        <?xml version="1.0" encoding="UTF-8"?>
+read_xml = """<?xml version="1.0" encoding="UTF-8"?>
         <imsx_POXEnvelopeRequest xmlns="http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0">  <imsx_POXHeader>
         <imsx_POXRequestHeaderInfo>
           <imsx_version>V1.0</imsx_version>
@@ -67,8 +65,7 @@ read_xml = """
         """
 
 
-replace_xml_fmt = """
-        <?xml version="1.0" encoding="UTF-8"?>
+replace_xml_fmt = """<?xml version="1.0" encoding="UTF-8"?>
         <imsx_POXEnvelopeRequest xmlns="http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0">
         <imsx_POXHeader>
           <imsx_POXRequestHeaderInfo>
@@ -99,7 +96,7 @@ class TestOutcomes(ApplicationLayerTest):
 
     def test_read(self):
         request = DummyRequest()
-        request.POST = read_xml
+        request.body = read_xml
         lti_request = ILTIRequest(request)
         outcome_request = IOutcomeRequest(lti_request)
         assert_that(outcome_request, validly_provides(IOutcomeReadRequest))
@@ -108,7 +105,7 @@ class TestOutcomes(ApplicationLayerTest):
 
     def test_delete(self):
         request = DummyRequest()
-        request.POST = delete_xml
+        request.body = delete_xml
         lti_request = ILTIRequest(request)
         outcome_request = IOutcomeRequest(lti_request)
         assert_that(outcome_request, validly_provides(IOutcomeDeleteRequest))
@@ -117,7 +114,7 @@ class TestOutcomes(ApplicationLayerTest):
 
     def test_replace(self):
         request = DummyRequest()
-        request.POST = replace_xml_fmt % '.5'
+        request.body = replace_xml_fmt % '.5'
         lti_request = ILTIRequest(request)
         outcome_request = IOutcomeRequest(lti_request)
         assert_that(outcome_request, validly_provides(IOutcomeReplaceRequest))
@@ -125,22 +122,22 @@ class TestOutcomes(ApplicationLayerTest):
         assert_that(outcome_request.result_id, validly_provides(IResultSourcedId))
         assert_that(outcome_request.result_id.lis_result_sourcedid, is_(u'3124567'))
 
-        request.POST = replace_xml_fmt % '1.0'
+        request.body = replace_xml_fmt % '1.0'
         outcome_request = IOutcomeRequest(ILTIRequest(request))
         assert_that(outcome_request.score, is_(1.0))
 
-        request.POST = replace_xml_fmt % '0.0'
+        request.body = replace_xml_fmt % '0.0'
         outcome_request = IOutcomeRequest(ILTIRequest(request))
         assert_that(outcome_request.score, is_(0.0))
 
-        request.POST = replace_xml_fmt % '1.1'
+        request.body = replace_xml_fmt % '1.1'
         with self.assertRaises(ValidationError):
             IOutcomeRequest(ILTIRequest(request))
 
-        request.POST = replace_xml_fmt % '-0.1'
+        request.body = replace_xml_fmt % '-0.1'
         with self.assertRaises(ValidationError):
             IOutcomeRequest(ILTIRequest(request))
 
-        request.POST = replace_xml_fmt % 'a'
+        request.body = replace_xml_fmt % 'a'
         with self.assertRaises(ValidationError):
             IOutcomeRequest(ILTIRequest(request))

@@ -8,12 +8,22 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
-from bs4 import BeautifulSoup
+from lti.outcome_request import OutcomeRequest
+
+from lti.outcome_response import OutcomeResponse
 
 from zope import component
 from zope import interface
 
+from zope.proxy import ProxyBase
+from zope.proxy import non_overridable
+from zope.proxy import getProxiedObject
+
+from zope.proxy.decorator import SpecificationDecoratorBase
+
 from nti.app.products.ims.interfaces import ILTIRequest
+
+from nti.externalization.persistence import NoPickle
 
 from nti.externalization.representation import WithRepr
 
@@ -30,143 +40,67 @@ from nti.schema.schema import SchemaConfigured
 logger = __import__('logging').getLogger(__name__)
 
 
-def _get_doc_field_val(doc, field):
-    field_val = doc.find(field)
-    return field_val and field_val.text
+@NoPickle
+@interface.implementer(IOutcomeRequest)
+class OutcomeRequestProxy(SpecificationDecoratorBase):
+
+    def __new__(cls, base, *unused_args, **unused_kwargs):
+        return ProxyBase.__new__(cls, base)
+
+    def __init__(self, base):
+        ProxyBase.__init__(self, base)
+
+    @non_overridable
+    @property
+    def result_id(self):
+        sourcedid = unicode(self.lis_result_sourcedid)
+        return ResultSourcedId(lis_result_sourcedid=sourcedid)
+
+    @non_overridable
+    def __call__(self):
+        # TODO
+        pass
 
 
-def _get_delete_request(unused_doc, result_id):
-    """
-    <?xml version="1.0" encoding="UTF-8"?>
-    <imsx_POXEnvelopeRequest xmlns="http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0">
-    <imsx_POXHeader>
-      <imsx_POXRequestHeaderInfo>
-        <imsx_version>V1.0</imsx_version>
-        <imsx_messageIdentifier>999999123</imsx_messageIdentifier>
-      </imsx_POXRequestHeaderInfo>
-    </imsx_POXHeader>
-    <imsx_POXBody>
-      <deleteResultRequest>
-        <resultRecord>
-          <sourcedGUID>
-            <sourcedId>3124567</sourcedId>
-          </sourcedGUID>
-        </resultRecord>
-      </deleteResultRequest>
-    </imsx_POXBody>
-    </imsx_POXEnvelopeRequest>
-    """
-    return OutcomeDeleteRequest(result_id=result_id)
+@NoPickle
+@interface.implementer(IOutcomeReplaceRequest)
+class OutcomeReplaceRequestProxy(OutcomeRequestProxy):
+
+    createDirectFieldProperties(IOutcomeReplaceRequest)
+
+    def __new__(cls, base, *unused_args, **unused_kwargs):
+        return ProxyBase.__new__(cls, base)
+
+    def __init__(self, base, score):
+        ProxyBase.__init__(self, base)
+        self.score = score
 
 
-def _get_read_request(unused_doc, result_id):
-    """
-    <?xml version="1.0" encoding="UTF-8"?>
-    <imsx_POXEnvelopeRequest xmlns="http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0">  <imsx_POXHeader>
-    <imsx_POXRequestHeaderInfo>
-      <imsx_version>V1.0</imsx_version>
-      <imsx_messageIdentifier>999999123</imsx_messageIdentifier>
-    </imsx_POXRequestHeaderInfo>
-    </imsx_POXHeader>
-    <imsx_POXBody>
-    <readResultRequest>
-      <resultRecord>
-        <sourcedGUID>
-          <sourcedId>3124567</sourcedId>
-        </sourcedGUID>
-      </resultRecord>
-    </readResultRequest>
-    </imsx_POXBody>
-    </imsx_POXEnvelopeRequest>
-    """
-    return OutcomeReadRequest(result_id=result_id)
-
-
-def _get_replace_request(doc, result_id):
-    """
-    <?xml version="1.0" encoding="UTF-8"?>
-    <imsx_POXEnvelopeRequest xmlns="http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0">
-    <imsx_POXHeader>
-      <imsx_POXRequestHeaderInfo>
-        <imsx_version>V1.0</imsx_version>
-        <imsx_messageIdentifier>999999123</imsx_messageIdentifier>
-      </imsx_POXRequestHeaderInfo>
-    </imsx_POXHeader>
-    <imsx_POXBody>
-      <replaceResultRequest>
-        <resultRecord>
-          <sourcedGUID>
-            <sourcedId>3124567</sourcedId>
-          </sourcedGUID>
-          <result>
-            <resultScore>
-              <language>en</language>
-              <textString>0.92</textString>
-            </resultScore>
-          </result>
-        </resultRecord>
-      </replaceResultRequest>
-    </imsx_POXBody>
-    </imsx_POXEnvelopeRequest>
-    """
-    score_str = _get_doc_field_val(doc, 'textstring')
+def _get_score(obj):
     try:
-        score = float(score_str)
+        result = float(obj.score)
     except (TypeError, ValueError):
-        # Let this percolate up as a validation error
-        score = score_str
-    return OutcomeReplaceRequest(result_id=result_id, score=score)
+        # Want this to percolate up during schema validation
+        result = obj.score
+    return result
 
 
 @component.adapter(ILTIRequest)
 @interface.implementer(IOutcomeRequest)
 def _create_outcome_request(request):
-    # Oauth body signing
+    outcome_request = OutcomeRequest.from_post_request(request)
     result = None
-    doc = BeautifulSoup(request.POST, 'lxml')
-    result_id = _get_doc_field_val(doc, 'sourcedid')
-    if doc.find('replaceresultrequest'):
-        result = _get_replace_request(doc, result_id)
-    elif doc.find('readresultrequest'):
-        result = _get_read_request(doc, result_id)
-    elif doc.find("deleteresultrequest"):
-        result = _get_delete_request(doc, result_id)
+    if outcome_request.is_delete_request():
+        result = OutcomeRequestProxy(outcome_request)
+        interface.alsoProvides(result, IOutcomeDeleteRequest)
+    elif outcome_request.is_read_request():
+        result = OutcomeRequestProxy(outcome_request)
+        interface.alsoProvides(result, IOutcomeReadRequest)
+    elif outcome_request.is_replace_request():
+        score = _get_score(outcome_request)
+        result = OutcomeReplaceRequestProxy(outcome_request, score=score)
+        interface.alsoProvides(result, IOutcomeReplaceRequest)
     return result
-
-
-@interface.implementer(IOutcomeRequest)
-class AbstractOutcomeRequest(SchemaConfigured):
-
-    createDirectFieldProperties(IOutcomeRequest)
-
-    def __init__(self, result_id=None, *args, **kwargs):
-        result_id = ResultSourcedId(lis_result_sourcedid=result_id)
-        SchemaConfigured.__init__(self, result_id=result_id, *args, **kwargs)
-
-    def __call__(self):
-        #: TODO
-        pass
-
-
-@WithRepr
-@interface.implementer(IOutcomeReadRequest)
-class OutcomeReadRequest(AbstractOutcomeRequest):
-
-    createDirectFieldProperties(IOutcomeReadRequest)
-
-
-@WithRepr
-@interface.implementer(IOutcomeDeleteRequest)
-class OutcomeDeleteRequest(AbstractOutcomeRequest):
-
-    createDirectFieldProperties(IOutcomeDeleteRequest)
-
-
-@WithRepr
-@interface.implementer(IOutcomeReplaceRequest)
-class OutcomeReplaceRequest(AbstractOutcomeRequest):
-
-    createDirectFieldProperties(IOutcomeReplaceRequest)
 
 
 @WithRepr

@@ -36,7 +36,6 @@ setup(
     include_package_data=True,
     namespace_packages=['nti', 'nti.app', 'nti.app.products'],
     install_requires=[
-        'beautifulsoup4',
         'setuptools',
         'nti.ims',
     ],
