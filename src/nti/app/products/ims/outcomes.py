@@ -17,16 +17,16 @@ from zope import interface
 
 from zope.proxy import ProxyBase
 from zope.proxy import non_overridable
-from zope.proxy import getProxiedObject
 
 from zope.proxy.decorator import SpecificationDecoratorBase
+
+from zope.schema.interfaces import ValidationError
 
 from nti.app.products.ims.interfaces import ILTIRequest
 
 from nti.externalization.persistence import NoPickle
 
-from nti.externalization.representation import WithRepr
-
+from nti.ims.lti.interfaces import IOutcomeService
 from nti.ims.lti.interfaces import IOutcomeRequest
 from nti.ims.lti.interfaces import IResultSourcedId
 from nti.ims.lti.interfaces import IOutcomeReadRequest
@@ -42,7 +42,7 @@ logger = __import__('logging').getLogger(__name__)
 
 @NoPickle
 @interface.implementer(IOutcomeRequest)
-class OutcomeRequestProxy(SpecificationDecoratorBase):
+class AbstractOutcomeRequestProxy(SpecificationDecoratorBase):
 
     def __new__(cls, base, *unused_args, **unused_kwargs):
         return ProxyBase.__new__(cls, base)
@@ -56,33 +56,77 @@ class OutcomeRequestProxy(SpecificationDecoratorBase):
         sourcedid = unicode(self.lis_result_sourcedid)
         return ResultSourcedId(lis_result_sourcedid=sourcedid)
 
-    @non_overridable
-    def __call__(self):
-        # TODO
-        pass
-
 
 @NoPickle
 @interface.implementer(IOutcomeReplaceRequest)
-class OutcomeReplaceRequestProxy(OutcomeRequestProxy):
+class OutcomeReplaceRequestProxy(AbstractOutcomeRequestProxy):
 
     createDirectFieldProperties(IOutcomeReplaceRequest)
 
-    def __new__(cls, base, *unused_args, **unused_kwargs):
-        return ProxyBase.__new__(cls, base)
+    def _get_score_val(self):
+        try:
+            result = float(self.score)
+        except (TypeError, ValueError):
+            result = None
+        return result
 
-    def __init__(self, base, score):
-        ProxyBase.__init__(self, base)
-        self.score = score
+    @non_overridable
+    def __call__(self):
+        service = IOutcomeService(self.result_id, None)
+        score_val = self._get_score_val()
+        try:
+            self.score_val = score_val
+        except ValidationError:
+            score_val = None
+        if score_val is None:
+            logger.info("Invalid score (%s) (%s)",
+                        self.result_id, score_val)
+            code_major = 'failure'
+        elif service is None:
+            logger.info("Could not find outcome service (%s) (%s)",
+                        self.result_id, score_val)
+            code_major = 'failure'
+        else:
+            service.set_score(score_val)
+            code_major = 'success'
+        result = OutcomeResponse(operation=self.operation,
+                                 message_ref_identifier=self.message_identifier,
+                                 code_major=code_major)
+        return result
 
 
-def _get_score(obj):
-    try:
-        result = float(obj.score)
-    except (TypeError, ValueError):
-        # Want this to percolate up during schema validation
-        result = obj.score
-    return result
+@NoPickle
+@interface.implementer(IOutcomeReadRequest)
+class OutcomeReadRequestProxy(AbstractOutcomeRequestProxy):
+
+    createDirectFieldProperties(IOutcomeReadRequest)
+
+    @non_overridable
+    def __call__(self):
+        service = IOutcomeService(self.result_id, None)
+        score = None
+        if service is not None:
+            score = service.get_score()
+        result = OutcomeResponse(operation=self.operation,
+                                 message_ref_identifier=self.message_identifier,
+                                 score=score)
+        return result
+
+
+@NoPickle
+@interface.implementer(IOutcomeDeleteRequest)
+class OutcomeDeleteRequestProxy(AbstractOutcomeRequestProxy):
+
+    createDirectFieldProperties(IOutcomeDeleteRequest)
+
+    @non_overridable
+    def __call__(self):
+        service = IOutcomeService(self.result_id, None)
+        if service is not None:
+            service.remove_score()
+        result = OutcomeResponse(operation=self.operation,
+                                 message_ref_identifier=self.message_identifier)
+        return result
 
 
 @component.adapter(ILTIRequest)
@@ -91,20 +135,20 @@ def _create_outcome_request(request):
     outcome_request = OutcomeRequest.from_post_request(request)
     result = None
     if outcome_request.is_delete_request():
-        result = OutcomeRequestProxy(outcome_request)
-        interface.alsoProvides(result, IOutcomeDeleteRequest)
+        result = OutcomeDeleteRequestProxy(outcome_request)
     elif outcome_request.is_read_request():
-        result = OutcomeRequestProxy(outcome_request)
-        interface.alsoProvides(result, IOutcomeReadRequest)
+        result = OutcomeReadRequestProxy(outcome_request)
     elif outcome_request.is_replace_request():
-        score = _get_score(outcome_request)
-        result = OutcomeReplaceRequestProxy(outcome_request, score=score)
-        interface.alsoProvides(result, IOutcomeReplaceRequest)
+        result = OutcomeReplaceRequestProxy(outcome_request)
     return result
 
 
-@WithRepr
 @interface.implementer(IResultSourcedId)
 class ResultSourcedId(SchemaConfigured):
 
     createDirectFieldProperties(IResultSourcedId)
+
+    def __str__(self):
+        return "%s(%r)" \
+                % (self.__class__.__name__, self.lis_result_sourcedid)
+    __repr__ = __str__

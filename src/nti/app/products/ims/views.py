@@ -70,8 +70,6 @@ from nti.appserver.ugd_edit_views import UGDPutView
 
 from nti.base._compat import bytes_
 
-from nti.coremetadata.interfaces import IUser
-
 from nti.dataserver import authorization as nauth
 
 from nti.dataserver.interfaces import ILinkExternalHrefOnly
@@ -84,7 +82,6 @@ from nti.ims.lti.consumer import PersistentToolConfig
 
 from nti.ims.lti.interfaces import ITool
 from nti.ims.lti.interfaces import IConfiguredTool
-from nti.ims.lti.interfaces import IOutcomeService
 from nti.ims.lti.interfaces import IOutcomeRequest
 from nti.ims.lti.interfaces import IToolConfigFactory
 from nti.ims.lti.interfaces import IConfiguredToolContainer
@@ -428,7 +425,7 @@ class OutcomePostbackView(AbstractView):
         lti_request = ILTIRequest(self.request)
         outcome_request = IOutcomeRequest(lti_request)
         result_sourcedid = outcome_request.result_id
-        __traceback_info__ = result_sourcedid
+        __traceback_info__ = result_sourcedid, self.request.body
         tool = ITool(result_sourcedid, None)
 
         try:
@@ -441,14 +438,8 @@ class OutcomePostbackView(AbstractView):
             logger.exception('Invalid Outcome Service Request')
             return hexc.HTTPBadRequest()
 
-        user = IUser(result_sourcedid)
-        service = IOutcomeService(result_sourcedid)
-
-        # TODO: Store result persistently
-
-        response = outcome_request()
-
         # Create a response
+        response = outcome_request()
         self.request.response.body = response.generate_response_xml()
         self.request.response.content_type = 'application/xml'
         self.request.response.status_code = 200
