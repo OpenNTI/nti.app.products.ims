@@ -80,13 +80,15 @@ class OutcomeReplaceRequestProxy(AbstractOutcomeRequestProxy):
             score_val = None
         if score_val is None:
             logger.info("Invalid score (%s) (%s)",
-                        self.result_id, score_val)
+                        self.result_id, self.score)
             code_major = 'failure'
         elif service is None:
             logger.info("Could not find outcome service (%s) (%s)",
-                        self.result_id, score_val)
+                        self.result_id, self.score)
             code_major = 'failure'
         else:
+            logger.debug('Setting score val (%s) (%s)',
+                         self.result_id, self.score)
             service.set_score(score_val)
             code_major = 'success'
         result = OutcomeResponse(operation=self.operation,
