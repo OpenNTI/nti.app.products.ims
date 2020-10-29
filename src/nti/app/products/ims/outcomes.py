@@ -15,6 +15,8 @@ from lti.outcome_response import OutcomeResponse
 from zope import component
 from zope import interface
 
+from zope.container.contained import Contained
+
 from zope.proxy import ProxyBase
 from zope.proxy import non_overridable
 
@@ -23,6 +25,13 @@ from zope.proxy.decorator import SpecificationDecoratorBase
 from zope.schema.interfaces import ValidationError
 
 from nti.app.products.ims.interfaces import ILTIRequest
+from nti.app.products.ims.interfaces import IUserOutcomeResult
+from nti.app.products.ims.interfaces import IOutcomeResultContainer
+from nti.app.products.ims.interfaces import IUserOutcomeResultContainer
+
+from nti.containers.containers import CaseInsensitiveCheckingLastModifiedBTreeContainer
+
+from nti.dublincore.datastructures import PersistentCreatedModDateTrackingObject
 
 from nti.externalization.persistence import NoPickle
 
@@ -32,6 +41,8 @@ from nti.ims.lti.interfaces import IResultSourcedId
 from nti.ims.lti.interfaces import IOutcomeReadRequest
 from nti.ims.lti.interfaces import IOutcomeDeleteRequest
 from nti.ims.lti.interfaces import IOutcomeReplaceRequest
+
+from nti.property.property import alias
 
 from nti.schema.fieldproperty import createDirectFieldProperties
 
@@ -109,6 +120,7 @@ class OutcomeReadRequestProxy(AbstractOutcomeRequestProxy):
         score = None
         if service is not None:
             score = service.get_score()
+            score = str(score)
         result = OutcomeResponse(operation=self.operation,
                                  message_ref_identifier=self.message_identifier,
                                  score=score)
@@ -154,3 +166,37 @@ class ResultSourcedId(SchemaConfigured):
         return "%s(%r)" \
                 % (self.__class__.__name__, self.lis_result_sourcedid)
     __repr__ = __str__
+
+
+@interface.implementer(IUserOutcomeResult)
+class UserOutcomeResult(PersistentCreatedModDateTrackingObject,
+                        Contained,
+                        SchemaConfigured):
+
+    createDirectFieldProperties(IUserOutcomeResult)
+
+    __parent__ = None
+    __name__ = None
+    _item_ntiid = None
+
+    item_ntiid = alias('ItemNTIID')
+
+    mimeType = mime_type = "application/vnd.nextthought.ims.useroutcomeresult"
+
+    def __str__(self):
+        return "%s(%s %s %s)" \
+                % (self.__class__.__name__,
+                   self.ItemNTIID,
+                   self.score,
+                   self.ResultDate)
+    __repr__ = __str__
+
+
+@interface.implementer(IUserOutcomeResultContainer)
+class UserOutcomeResultContainer(CaseInsensitiveCheckingLastModifiedBTreeContainer):
+    pass
+
+
+@interface.implementer(IOutcomeResultContainer)
+class OutcomeResultContainer(CaseInsensitiveCheckingLastModifiedBTreeContainer):
+    pass
