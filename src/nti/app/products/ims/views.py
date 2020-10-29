@@ -57,11 +57,11 @@ from nti.app.products.ims import VIEW_LTI_OUTCOMES
 
 from nti.app.products.ims._table_utils import LTIToolsTable
 
-from nti.app.products.ims.interfaces import ILTIUserFactory
-from nti.app.products.ims.interfaces import IOAuthProviderSignatureOnlyEndpoint
-
 from nti.app.products.ims.interfaces import ILTIRequest
 from nti.app.products.ims.interfaces import IToolProvider
+from nti.app.products.ims.interfaces import ILTIUserFactory
+from nti.app.products.ims.interfaces import IInvalidLTISourcedIdException
+from nti.app.products.ims.interfaces import IOAuthProviderSignatureOnlyEndpoint
 
 from nti.appserver.logon import _create_success_response
 
@@ -427,7 +427,13 @@ class OutcomePostbackView(AbstractView):
         outcome_request = IOutcomeRequest(lti_request)
         result_sourcedid = outcome_request.result_id
         __traceback_info__ = result_sourcedid, self.request.body
-        tool = IConfiguredTool(result_sourcedid, None)
+        try:
+            # Used for logging, this will also validate the sourcedid.
+            tool = IConfiguredTool(result_sourcedid, None)
+        except IInvalidLTISourcedIdException:
+            logger.exception("Invalid lis sourcedid (%s) (%s)",
+                             result_sourcedid, self.request.body)
+            return hexc.HTTPBadRequest()
 
         sig_endpoint = component.getUtility(IOAuthProviderSignatureOnlyEndpoint)
         # Do we need this request?

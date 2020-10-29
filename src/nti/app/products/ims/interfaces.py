@@ -14,6 +14,10 @@ from pyramid.interfaces import IRequest
 
 from zope import interface
 
+from zope.schema import ValidationError
+
+from nti.app.products.ims import MessageFactory as _
+
 from nti.ims.lti.interfaces import ITool
 
 
@@ -83,3 +87,15 @@ class ILaunchParamsMapping(interface.Interface):
     e.g.
     'EXAMPLE_PACKAGE_ID': 'tool_consumer_instance_guid'
     """
+
+
+class IInvalidLTISourcedIdException(interface.Interface):
+    """
+    An error that occurs while decoding a sourcedid.
+    """
+
+
+@interface.implementer(IInvalidLTISourcedIdException)
+class InvalidLTISourcedIdException(ValidationError):
+    __doc__ = _(u'Invalid outcomes result sourcedid.')
+    i18n_message = __doc__
