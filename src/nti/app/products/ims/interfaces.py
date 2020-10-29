@@ -41,6 +41,20 @@ class IOAuthRequestValidator(interface.Interface):
     """
 
 
+class IOAuthProviderRequestValidator(interface.Interface):
+    """
+    An implementation of of oauthlib.oauth1.rfc5849.request_validator.RequestValidator
+    that can be used to validate requests to SignatureOnlyEndpoints from ToolProviders.
+    """
+
+
+class IOAuthProviderSignatureOnlyEndpoint(interface.Interface):
+    """
+    An implementation of of oauthlib.oauth1.rfc5849.endpoints.signature_only
+    that can be used to validate requests to using IOAuthProviderRequestValidator.
+    """
+
+
 class IOAuthNonceRecorder(interface.Interface):
 
     def record_nonce_received(nonce, expires=600):

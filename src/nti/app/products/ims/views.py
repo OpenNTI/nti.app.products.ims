@@ -58,6 +58,7 @@ from nti.app.products.ims import VIEW_LTI_OUTCOMES
 from nti.app.products.ims._table_utils import LTIToolsTable
 
 from nti.app.products.ims.interfaces import ILTIUserFactory
+from nti.app.products.ims.interfaces import IOAuthProviderSignatureOnlyEndpoint
 
 from nti.app.products.ims.interfaces import ILTIRequest
 from nti.app.products.ims.interfaces import IToolProvider
@@ -426,16 +427,18 @@ class OutcomePostbackView(AbstractView):
         outcome_request = IOutcomeRequest(lti_request)
         result_sourcedid = outcome_request.result_id
         __traceback_info__ = result_sourcedid, self.request.body
-        tool = ITool(result_sourcedid, None)
+        tool = IConfiguredTool(result_sourcedid, None)
 
-        try:
-            provider = component.queryMultiAdapter((tool, lti_request),
-                                                   IToolProvider)
-            if not provider:
-                return hexc.HTTPNotFound()
-            provider.valid_request()
-        except InvalidLTIRequestError:
-            logger.exception('Invalid Outcome Service Request')
+        sig_endpoint = component.getUtility(IOAuthProviderSignatureOnlyEndpoint)
+        # Do we need this request?
+        is_valid, request = sig_endpoint.validate_request(self.request.url,
+                                                          http_method='POST',
+                                                          body=self.request.body,
+                                                          headers=self.request.headers)
+
+        if not is_valid:
+            logger.info("Invalid LTI outcome (%s) (%s)",
+                        result_sourcedid, tool.consumer_key)
             return hexc.HTTPBadRequest()
 
         # Create a response

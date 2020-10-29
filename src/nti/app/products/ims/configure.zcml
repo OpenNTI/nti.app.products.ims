@@ -15,15 +15,24 @@
 	<configure zcml:condition="not-have devmode">
 		<utility factory=".oauth.OAuthSignatureOnlyValidator"
 				 provides=".interfaces.IOAuthRequestValidator"/>
+
+		<utility factory=".oauth.OAuthProviderRequestValidator"
+                 provides=".interfaces.IOAuthProviderRequestValidator"/>
 	</configure>
 	<configure zcml:condition="have devmode">
 		<utility factory=".oauth.DevModeOAuthValidator"
 				 provides=".interfaces.IOAuthRequestValidator"/>
+
+	    <utility factory=".oauth.DevModeOAuthProviderRequestValidator"
+                 provides=".interfaces.IOAuthProviderRequestValidator"/>
 	</configure>
 
 	<!-- Utilities -->
 	<utility factory=".oauth.RedisNonceRecorder"
 			 provides=".interfaces.IOAuthNonceRecorder" />
+
+    <utility factory=".oauth._get_endpoint_provider_request_validator"
+             provides=".interfaces.IOAuthProviderSignatureOnlyEndpoint" />
 
 	<!-- Adapters -->
 	<adapter factory=".pyramid.PyramidLTIRequest"
