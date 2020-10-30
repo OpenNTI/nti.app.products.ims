@@ -9,14 +9,29 @@ from hamcrest import is_
 from hamcrest import assert_that
 from hamcrest import contains_string
 
+import fudge
+import fakeredis
+import requests
+
+from lti.outcome_request import OutcomeRequest
+
+from lti.utils import InvalidLTIConfigError
+
+from requests_oauthlib import OAuth1
+
+from requests_oauthlib.oauth1_auth import SIGNATURE_TYPE_AUTH_HEADER
+
 from zope import component
 from zope import interface
 
 from nti.app.products.ims.interfaces import ILTIRequest
+from nti.app.products.ims.interfaces import IOAuthProviderSignatureOnlyEndpoint
 
 from nti.app.testing.application_webtest import ApplicationLayerTest
 
 from nti.app.testing.request_response import DummyRequest
+
+from nti.ims.lti.consumer import ConfiguredTool
 
 from nti.ims.lti.interfaces import IOutcomeRequest
 from nti.ims.lti.interfaces import IOutcomeService
@@ -24,6 +39,8 @@ from nti.ims.lti.interfaces import IResultSourcedId
 from nti.ims.lti.interfaces import IOutcomeReadRequest
 from nti.ims.lti.interfaces import IOutcomeDeleteRequest
 from nti.ims.lti.interfaces import IOutcomeReplaceRequest
+
+from nti.coremetadata.interfaces import IRedisClient
 
 from nti.testing.matchers import validly_provides
 
@@ -110,7 +127,96 @@ class _MockOutcomeService(object):
     def remove_score(self):
         pass
 
+
+class _MockOutcomeRequest(OutcomeRequest):
+
+    def post_outcome_request(self, **kwargs):
+        """
+        Return the oauth1 signed request
+        """
+        if not self.has_required_attributes():
+            raise InvalidLTIConfigError(
+                'OutcomeRequest does not have all required attributes')
+        header_oauth = OAuth1(self.consumer_key, self.consumer_secret,
+                              signature_type=SIGNATURE_TYPE_AUTH_HEADER,
+                              force_include_body=True, **kwargs)
+
+        #headers = {b'HTTP_AUTHORIZATION': 'Bearer %s' % encoded_token}
+        headers = {b'Content-type': b'application/xml'}
+        result = requests.Request(method='POST',
+                                  url=self.lis_outcome_service_url,
+                                  headers=headers,
+                                  auth=header_oauth,
+                                  data=self.generate_request_xml())
+        prepped = result.prepare()
+        return requests.Request(method='POST',
+                                url=self.lis_outcome_service_url,
+                                headers=prepped.headers,
+                                data=self.generate_request_xml())
+
+
 class TestOutcomes(ApplicationLayerTest):
+
+    def setUp(self):
+        self.redis = fakeredis.FakeStrictRedis()
+        gsm = component.getGlobalSiteManager()
+        gsm.registerUtility(self.redis, IRedisClient)
+
+    def tearDown(self):
+        gsm = component.getGlobalSiteManager()
+        gsm.unregisterUtility(self.redis, IRedisClient)
+
+    @fudge.patch('nti.app.products.ims.oauth._get_tool_iter')
+    def test_oauth_signature(self, mock_get_tools):
+        consumer_key = u'0123456789abcdedfghijk'
+        consumer_secret = u'consumer_secret'
+        url = u'https://localhost:8082/dataserver2/lti/@@Outcomes'
+
+        opts = {'consumer_key': consumer_key,
+                'consumer_secret': consumer_secret,
+                'lis_outcome_service_url': url,
+                'operation': 'readResult',
+                'lis_result_sourcedid': '123:456:789'}
+        test_outcome_request = _MockOutcomeRequest(opts=opts)
+        def _make_request():
+            return test_outcome_request.post_read_result()
+
+        sig_endpoint = component.getUtility(IOAuthProviderSignatureOnlyEndpoint)
+        def _do_validate():
+            request = _make_request()
+            result = sig_endpoint.validate_request(request.url,
+                                                   http_method='POST',
+                                                   body=request.data,
+                                                   headers=request.headers)
+            return result
+
+        # No tools
+        mock_get_tools.is_callable().returns(())
+        validate_result, unused_validate_request = _do_validate()
+        assert_that(validate_result, is_(False))
+
+        # No match
+        tool = ConfiguredTool(consumer_key=u'dev.nextthought.com',
+                              secret=u'blahblahblah')
+        mock_get_tools.is_callable().returns((tool,))
+
+        validate_result, unused_validate_request = _do_validate()
+        assert_that(validate_result, is_(False))
+
+        # Bad secret
+        tool = ConfiguredTool(consumer_key=consumer_key,
+                              secret=u'blahblahblah')
+        mock_get_tools.is_callable().returns((tool,))
+        validate_result, unused_validate_request = _do_validate()
+        assert_that(validate_result, is_(False))
+
+        # Correct
+        tool = ConfiguredTool(consumer_key=consumer_key,
+                              secret=consumer_secret)
+        mock_get_tools.is_callable().returns((tool,))
+
+        validate_result, unused_validate_request = _do_validate()
+        assert_that(validate_result, is_(True))
 
     def test_read(self):
         request = DummyRequest()

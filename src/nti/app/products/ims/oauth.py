@@ -168,7 +168,7 @@ def _get_tool_iter():
 
 
 @interface.implementer(IOAuthProviderRequestValidator)
-class OAuthProviderRequestValidator(RequestValidator):
+class OAuthProviderRequestValidator(OAuthSignatureOnlyValidator):
     """
     An implementation of RequestValidator that implements
     the required methods for use with a SignatureOnlyEndpoint

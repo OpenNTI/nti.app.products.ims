@@ -436,8 +436,7 @@ class OutcomePostbackView(AbstractView):
             return hexc.HTTPBadRequest()
 
         sig_endpoint = component.getUtility(IOAuthProviderSignatureOnlyEndpoint)
-        # Do we need this request?
-        is_valid, request = sig_endpoint.validate_request(self.request.url,
+        is_valid, unused_request = sig_endpoint.validate_request(self.request.url,
                                                           http_method='POST',
                                                           body=self.request.body,
                                                           headers=self.request.headers)
