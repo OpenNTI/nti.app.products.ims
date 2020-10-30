@@ -194,9 +194,23 @@ class UserOutcomeResult(PersistentCreatedModDateTrackingObject,
 
 @interface.implementer(IUserOutcomeResultContainer)
 class UserOutcomeResultContainer(CaseInsensitiveCheckingLastModifiedBTreeContainer):
-    pass
+
+    def pop(self, key, default=None):
+        try:
+            result = self[key]
+            del self[key]
+        except KeyError:
+            result = default
+        return result
 
 
 @interface.implementer(IOutcomeResultContainer)
 class OutcomeResultContainer(CaseInsensitiveCheckingLastModifiedBTreeContainer):
-    pass
+
+    def pop(self, key, default=None):
+        try:
+            result = self[key]
+            del self[key]
+        except KeyError:
+            result = default
+        return result
