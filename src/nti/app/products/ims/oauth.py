@@ -8,6 +8,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
+from oauthlib.oauth1.rfc5849.endpoints.signature_only import SignatureOnlyEndpoint
+
 from oauthlib.oauth1.rfc5849.request_validator import RequestValidator
 
 from oauthlib.oauth1.rfc5849.utils import UNICODE_ASCII_CHARACTER_SET
@@ -19,12 +21,17 @@ from zope import interface
 
 from nti.app.products.ims.interfaces import IOAuthNonceRecorder
 from nti.app.products.ims.interfaces import IOAuthRequestValidator
+from nti.app.products.ims.interfaces import IOAuthProviderRequestValidator
+from nti.app.products.ims.interfaces import IOAuthProviderSignatureOnlyEndpoint
 
 from nti.dataserver.interfaces import IRedisClient
 
 from nti.transactions.transactions import ObjectDataManager
 
 from nti.ims.lti.interfaces import IOAuthConsumers
+from nti.dataserver.metadata.index import get_metadata_catalog, IX_MIMETYPE
+from nti.ims.lti.consumer import ConfiguredTool
+from nti.intid.interfaces import IIntIds
 
 LTI_NONCES = '++etc++ims++queue++nti_lti_nonces'
 
@@ -147,3 +154,50 @@ class OAuthSignatureOnlyValidator(RequestValidator):
 @interface.implementer(IOAuthRequestValidator)
 class DevModeOAuthValidator(OAuthSignatureOnlyValidator):
     enforce_ssl = False
+
+
+def _get_tool_iter():
+    # FIXME: Need to move towards registration
+    catalog = get_metadata_catalog()
+    rs = catalog.apply({IX_MIMETYPE: {'any_of': (ConfiguredTool.mime_type,)}})
+    intids = component.getUtility(IIntIds)
+    for result_intid in rs:
+        obj = intids.queryObject(result_intid)
+        if obj is not None:
+            yield obj
+
+
+@interface.implementer(IOAuthProviderRequestValidator)
+class OAuthProviderRequestValidator(OAuthSignatureOnlyValidator):
+    """
+    An implementation of RequestValidator that implements
+    the required methods for use with a SignatureOnlyEndpoint
+    """
+
+    def _configured_tool(self, key):
+        for obj in _get_tool_iter():
+            if obj.consumer_key == key:
+                return obj
+
+    def get_client_secret(self, client_key, unused_request):
+        # Here client_key is something that has been returned as
+        # valid according to validate_client_key or the default
+        try:
+            return self._configured_tool(client_key).secret
+        except AttributeError:
+            # client_key should always be the dummy key here
+            return _DUMMY_CLIENT_SECRET
+
+    def validate_client_key(self, client_key, unused_request):
+        return self._configured_tool(client_key) is not None
+
+
+@interface.implementer(IOAuthProviderRequestValidator)
+class DevModeOAuthProviderRequestValidator(OAuthProviderRequestValidator):
+    enforce_ssl = False
+
+
+@interface.implementer(IOAuthProviderSignatureOnlyEndpoint)
+def _get_endpoint_provider_request_validator():
+    request_validator = component.getUtility(IOAuthProviderRequestValidator)
+    return SignatureOnlyEndpoint(request_validator)

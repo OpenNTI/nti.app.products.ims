@@ -14,7 +14,23 @@ from pyramid.interfaces import IRequest
 
 from zope import interface
 
+from zope.container.constraints import contains
+from zope.container.interfaces import IContainer
+
+from zope.location.interfaces import IContained
+
+from zope.schema import ValidationError
+
+from nti.app.products.ims import MessageFactory as _
+
 from nti.ims.lti.interfaces import ITool
+
+from nti.ntiids.schema import ValidNTIID
+
+from nti.schema.field import Float
+from nti.schema.field import ValidDatetime
+
+from nti.zope_catalog.interfaces import INoAutoIndexEver
 
 
 class ILTIRequest(IRequest):
@@ -38,6 +54,20 @@ class IOAuthRequestValidator(interface.Interface):
     """
     An implementation of of oauthlib.oauth1.rfc5849.request_validator.RequestValidator
     that can be used to validate requests to SignatureOnlyEndpoint
+    """
+
+
+class IOAuthProviderRequestValidator(interface.Interface):
+    """
+    An implementation of of oauthlib.oauth1.rfc5849.request_validator.RequestValidator
+    that can be used to validate requests to SignatureOnlyEndpoints from ToolProviders.
+    """
+
+
+class IOAuthProviderSignatureOnlyEndpoint(interface.Interface):
+    """
+    An implementation of of oauthlib.oauth1.rfc5849.endpoints.signature_only
+    that can be used to validate requests to using IOAuthProviderRequestValidator.
     """
 
 
@@ -69,3 +99,45 @@ class ILaunchParamsMapping(interface.Interface):
     e.g.
     'EXAMPLE_PACKAGE_ID': 'tool_consumer_instance_guid'
     """
+
+
+class IInvalidLTISourcedIdException(interface.Interface):
+    """
+    An error that occurs while decoding a sourcedid.
+    """
+
+
+@interface.implementer(IInvalidLTISourcedIdException)
+class InvalidLTISourcedIdException(ValidationError):
+    __doc__ = _(u'Invalid outcomes result sourcedid.')
+    i18n_message = __doc__
+
+
+class IUserOutcomeResult(IContained):
+    """
+    Holds a principal's score obtained from a ToolProvider.
+    """
+
+    score = Float(title=u'The score',
+                  required=True,
+                  min=0.0,
+                  max=1.0)
+
+    ResultDate = ValidDatetime(title=u"The completed date",
+                               description=u"""The date on which the item
+                               was completed by the user""",
+                               required=True)
+
+    ItemNTIID = ValidNTIID(title=u"Outcome result item NTIID",
+                           required=False,
+                           default=None)
+
+
+class IUserOutcomeResultContainer(IContainer, IContained, INoAutoIndexEver):
+
+    contains(IUserOutcomeResult)
+
+
+class IOutcomeResultContainer(IContainer, INoAutoIndexEver):
+
+    contains(IUserOutcomeResultContainer)

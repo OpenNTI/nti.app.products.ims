@@ -53,13 +53,15 @@ from nti.app.products.ims import IMS
 from nti.app.products.ims import LTI
 from nti.app.products.ims import SIS
 from nti.app.products.ims import TOOLS
+from nti.app.products.ims import VIEW_LTI_OUTCOMES
 
 from nti.app.products.ims._table_utils import LTIToolsTable
 
-from nti.app.products.ims.interfaces import ILTIUserFactory
-
 from nti.app.products.ims.interfaces import ILTIRequest
 from nti.app.products.ims.interfaces import IToolProvider
+from nti.app.products.ims.interfaces import ILTIUserFactory
+from nti.app.products.ims.interfaces import IInvalidLTISourcedIdException
+from nti.app.products.ims.interfaces import IOAuthProviderSignatureOnlyEndpoint
 
 from nti.appserver.logon import _create_success_response
 
@@ -81,6 +83,7 @@ from nti.ims.lti.consumer import PersistentToolConfig
 
 from nti.ims.lti.interfaces import ITool
 from nti.ims.lti.interfaces import IConfiguredTool
+from nti.ims.lti.interfaces import IOutcomeRequest
 from nti.ims.lti.interfaces import IToolConfigFactory
 from nti.ims.lti.interfaces import IConfiguredToolContainer
 
@@ -198,7 +201,7 @@ class LaunchProviderView(AbstractView):
             # Mark the request to not send an account creation email
             interface.alsoProvides(lti_request, INoAccountCreationEmail)
             user_factory = ILTIUserFactory(lti_request)
-            # pylint: disable=too-many-function-args 
+            # pylint: disable=too-many-function-args
             user = user_factory.user_for_request(lti_request)
         except InvalidLTIRequestError:
             logger.exception('Invalid LTI Request')
@@ -410,3 +413,43 @@ def _create_tool_config_from_request(request):
     else:
         config = PersistentToolConfig(**parsed)
     return config
+
+
+@view_config(route_name='objects.generic.traversal',
+             renderer='rest',
+             context=LTIPathAdapter,
+             name=VIEW_LTI_OUTCOMES,
+             request_method='POST')
+class OutcomePostbackView(AbstractView):
+
+    def __call__(self):
+        lti_request = ILTIRequest(self.request)
+        outcome_request = IOutcomeRequest(lti_request)
+        result_sourcedid = outcome_request.result_id
+        __traceback_info__ = result_sourcedid, self.request.body
+        try:
+            # Used for logging, this will also validate the sourcedid.
+            tool = IConfiguredTool(result_sourcedid, None)
+        except IInvalidLTISourcedIdException:
+            logger.exception("Invalid lis sourcedid (%s) (%s)",
+                             result_sourcedid, self.request.body)
+            return hexc.HTTPBadRequest()
+
+        sig_endpoint = component.getUtility(IOAuthProviderSignatureOnlyEndpoint)
+        is_valid, unused_request = sig_endpoint.validate_request(self.request.url,
+                                                          http_method='POST',
+                                                          body=self.request.body,
+                                                          headers=self.request.headers)
+
+        if not is_valid:
+            logger.info("Invalid LTI outcome (%s) (%s)",
+                        result_sourcedid, tool.consumer_key)
+            return hexc.HTTPBadRequest()
+
+        # Create a response
+        response = outcome_request()
+        self.request.response.body = response.generate_response_xml()
+        self.request.response.content_type = 'application/xml'
+        self.request.response.status_code = 200
+        return self.request.response
+

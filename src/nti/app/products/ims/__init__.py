@@ -25,3 +25,6 @@ SIS = 'SIS'
 
 #: Tools Path
 TOOLS = 'TOOLS'
+
+#: LTI Outcomes View
+VIEW_LTI_OUTCOMES = 'Outcomes'
