@@ -19,6 +19,8 @@ import transaction
 from zope import component
 from zope import interface
 
+from zope.intid.interfaces import IIntIds
+
 from nti.app.products.ims.interfaces import IOAuthNonceRecorder
 from nti.app.products.ims.interfaces import IOAuthRequestValidator
 from nti.app.products.ims.interfaces import IOAuthProviderRequestValidator
@@ -31,7 +33,6 @@ from nti.transactions.transactions import ObjectDataManager
 from nti.ims.lti.interfaces import IOAuthConsumers
 from nti.dataserver.metadata.index import get_metadata_catalog, IX_MIMETYPE
 from nti.ims.lti.consumer import ConfiguredTool
-from nti.intid.interfaces import IIntIds
 
 LTI_NONCES = '++etc++ims++queue++nti_lti_nonces'
 
