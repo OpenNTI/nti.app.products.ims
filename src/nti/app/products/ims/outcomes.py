@@ -8,6 +8,8 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
+import uuid
+
 from lti.outcome_request import OutcomeRequest
 
 from lti.outcome_response import OutcomeResponse
@@ -67,6 +69,11 @@ class AbstractOutcomeRequestProxy(SpecificationDecoratorBase):
         sourcedid = unicode(self.lis_result_sourcedid)
         return ResultSourcedId(lis_result_sourcedid=sourcedid)
 
+    @non_overridable
+    @property
+    def msg_id(self):
+        return str(uuid.uuid4().time_low)
+
 
 @NoPickle
 @interface.implementer(IOutcomeReplaceRequest)
@@ -108,6 +115,7 @@ class OutcomeReplaceRequestProxy(AbstractOutcomeRequestProxy):
         result = OutcomeResponse(operation=self.operation,
                                  severity='status',
                                  description=desc,
+                                 message_identifier=self.msg_id,
                                  message_ref_identifier=self.message_identifier,
                                  code_major=code_major)
         return result
@@ -128,6 +136,7 @@ class OutcomeReadRequestProxy(AbstractOutcomeRequestProxy):
             score = str(score)
         result = OutcomeResponse(operation=self.operation,
                                  severity='status',
+                                 message_identifier=self.msg_id,
                                  description='Score read successfully',
                                  message_ref_identifier=self.message_identifier,
                                  score=score)
@@ -147,6 +156,7 @@ class OutcomeDeleteRequestProxy(AbstractOutcomeRequestProxy):
             service.remove_score()
         result = OutcomeResponse(operation=self.operation,
                                  severity='status',
+                                 message_identifier=self.msg_id,
                                  description='Score deleted successfully',
                                  message_ref_identifier=self.message_identifier)
         return result
