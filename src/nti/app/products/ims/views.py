@@ -437,9 +437,9 @@ class OutcomePostbackView(AbstractView):
 
         sig_endpoint = component.getUtility(IOAuthProviderSignatureOnlyEndpoint)
         is_valid, unused_request = sig_endpoint.validate_request(self.request.url,
-                                                          http_method='POST',
-                                                          body=self.request.body,
-                                                          headers=self.request.headers)
+                                                                 http_method='POST',
+                                                                 body=self.request.body,
+                                                                 headers=self.request.headers)
 
         if not is_valid:
             logger.info("Invalid LTI outcome (%s) (%s)",
@@ -448,8 +448,8 @@ class OutcomePostbackView(AbstractView):
 
         # Create a response
         response = outcome_request()
-        self.request.response.body = response.generate_response_xml()
+        self.request.response.text = response.generate_response_xml()
         self.request.response.content_type = 'application/xml'
+        self.request.response.charset = 'utf-8'
         self.request.response.status_code = 200
         return self.request.response
-
