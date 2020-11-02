@@ -448,7 +448,7 @@ class OutcomePostbackView(AbstractView):
 
         # Create a response
         response = outcome_request()
-        self.request.response.text = response.generate_response_xml()
+        self.request.response.text = unicode(response.generate_response_xml())
         self.request.response.content_type = 'application/xml'
         self.request.response.charset = 'utf-8'
         self.request.response.status_code = 200
