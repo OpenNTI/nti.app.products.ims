@@ -138,6 +138,7 @@ class OutcomeReadRequestProxy(AbstractOutcomeRequestProxy):
                                  severity='status',
                                  message_identifier=self.msg_id,
                                  description='Score read successfully',
+                                 code_major='success',
                                  message_ref_identifier=self.message_identifier,
                                  score=score)
         return result
@@ -156,6 +157,7 @@ class OutcomeDeleteRequestProxy(AbstractOutcomeRequestProxy):
             service.remove_score()
         result = OutcomeResponse(operation=self.operation,
                                  severity='status',
+                                 code_major='success',
                                  message_identifier=self.msg_id,
                                  description='Score deleted successfully',
                                  message_ref_identifier=self.message_identifier)
