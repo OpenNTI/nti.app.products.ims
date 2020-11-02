@@ -102,7 +102,12 @@ class OutcomeReplaceRequestProxy(AbstractOutcomeRequestProxy):
                          self.result_id, self.score)
             service.set_score(score_val)
             code_major = 'success'
+        desc = 'Score for %s set to %s (%s)' % (self.lis_result_sourcedid,
+                                                self.score,
+                                                code_major)
         result = OutcomeResponse(operation=self.operation,
+                                 severity='status',
+                                 description=desc,
                                  message_ref_identifier=self.message_identifier,
                                  code_major=code_major)
         return result
@@ -122,6 +127,8 @@ class OutcomeReadRequestProxy(AbstractOutcomeRequestProxy):
             score = service.get_score()
             score = str(score)
         result = OutcomeResponse(operation=self.operation,
+                                 severity='status',
+                                 description='Score read successfully',
                                  message_ref_identifier=self.message_identifier,
                                  score=score)
         return result
@@ -139,6 +146,8 @@ class OutcomeDeleteRequestProxy(AbstractOutcomeRequestProxy):
         if service is not None:
             service.remove_score()
         result = OutcomeResponse(operation=self.operation,
+                                 severity='status',
+                                 description='Score deleted successfully',
                                  message_ref_identifier=self.message_identifier)
         return result
 
