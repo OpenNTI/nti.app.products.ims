@@ -10,6 +10,7 @@ from hamcrest import assert_that
 from hamcrest import has_length
 from hamcrest import is_
 from hamcrest import is_not
+from hamcrest import string_contains
 does_not = is_not
 
 from zope.event import notify
@@ -155,9 +156,9 @@ class TestConsumer(ApplicationLayerTest):
         ext_tool[u'config'] = config
         with self.assertRaises(WrongContainedType) as context:
             update_from_external_object(containedObject=tool, externalObject=ext_tool)
-        assert_that(str(context.exception), is_("([RequiredMissing('launch_url'),"
-                                                " RequiredMissing('title')],"
-                                                " 'config')"))
+        assert_that(str(context.exception), string_contains("RequiredMissing('launch_url')",
+                                                            "RequiredMissing('title')",
+                                                            "config"))
 
         # Malformed URL config
         tool = ConfiguredTool()
