@@ -12,6 +12,12 @@ def _read(fname):
     with codecs.open(fname, encoding='utf-8') as f:
         return f.read()
 
+TESTS_REQUIRE = [
+    'nti.app.testing',
+    'nti.dataserver[test]',
+    'zope.lifecycleevent'
+]
+
 
 setup(
     name='nti.app.products.ims',
@@ -36,8 +42,19 @@ setup(
     include_package_data=True,
     namespace_packages=['nti', 'nti.app', 'nti.app.products'],
     install_requires=[
-        'setuptools',
         'nti.ims',
+        'nti.dataserver',
+        'setuptools',
+        'zope.component',
+        'zope.i18nmessageid'
     ],
+    extras_require={
+        'test': TESTS_REQUIRE,
+        'docs': [
+            'Sphinx',
+            'repoze.sphinx.autointerface',
+            'sphinx_rtd_theme',
+        ],
+    },
     entry_points=entry_points,
 )
